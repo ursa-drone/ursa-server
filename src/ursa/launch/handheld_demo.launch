@@ -10,9 +10,8 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher"
     type="robot_state_publisher" />
 
-  <node name="urg_node" pkg="urg_node"
-    type="urg_node">
-  </node>
+<machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+	<node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
 
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
@@ -24,3 +23,4 @@
   <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
 </launch>
+
