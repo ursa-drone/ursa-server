@@ -1,0 +1,26 @@
+<!--
+  Copyright 2017 - LAOSAAC
+
+-->
+
+<launch>
+  <param name="robot_description"
+    textfile="$(find ursa)/urdf/handheld_hokuyo.urdf" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher"
+    type="robot_state_publisher" />
+
+  <node name="urg_node" pkg="urg_node"
+    type="urg_node">
+  </node>
+
+  <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find ursa)/config
+          -configuration_basename cartographer_config.lua"
+      output="screen">
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" required="true"
+      args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
+</launch>

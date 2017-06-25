@@ -1,0 +1,4 @@
+<launch>
+	<node name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+	<node name="echo_scans" pkg="rostopic" type="rostopic" args="echo \scan" respawn="true" />
+</launch>

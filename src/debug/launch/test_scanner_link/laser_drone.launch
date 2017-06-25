@@ -1,0 +1,7 @@
+<launch>
+	<node name="echo_scans" pkg="rostopic" type="rostopic" args="echo \scan" respawn="true" />
+	
+	<machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+	<node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+
+</launch>
