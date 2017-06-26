@@ -4,23 +4,30 @@
 -->
 
 <launch>
-  <param name="robot_description"
+    <param name="robot_description"
     textfile="$(find ursa)/urdf/handheld_hokuyo.urdf" />
 
-  <node name="robot_state_publisher" pkg="robot_state_publisher"
+    <node name="robot_state_publisher" pkg="robot_state_publisher"
     type="robot_state_publisher" />
 
-<machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
-	<node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+    <!-- Setup urg_node -->
+    <arg name="desktop" default="0" doc="decides whether to launch urg_node from desktop or drone" />
+    <group if="$(arg desktop)">
+          <node name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+    </group>
+    <group unless="$(arg desktop)">
+        <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+        <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+    </group>
 
-  <node name="cartographer_node" pkg="cartographer_ros"
+    <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
           -configuration_basename cartographer_config.lua"
       output="screen">
-  </node>
+    </node>
 
-  <node name="rviz" pkg="rviz" type="rviz" required="true"
+    <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
 </launch>
 

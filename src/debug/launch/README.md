@@ -24,9 +24,20 @@ ssh -oHostKeyAlgorithms='ssh-rsa' pi@10.42.0.2
 ssh-add
 ```  
 	
-**Remove SSH key pair** (if you accidently forget to connect to remote first time without -oHostKeyAlgorithms='ssh-rsa')  
+**Remove SSH key pair** (if you accidentally forget to connect to remote first time without -oHostKeyAlgorithms='ssh-rsa')  
 
 on remote
 ```bash
 ssh-keygen -R pi@10.42.0.2
 ``` 
+
+**Check permissions for laser scanner & make permissions permanent**
+```bash
+sudo touch /etc/udev/rules.d/50-myusb.rules
+```
+```bash
+SUBSYSTEMS=="usb", KERNEL=="ttyACM[0-9]*", ACTION=="add", ATTRS{idVendor}=="15d1", ATTRS{idProduct}=="0000", MODE="666", PROGRAM="/opt/ros/kinetic/lib/urg_node/getID /dev/%k q", SYMLINK+="sensors/hokuyo_%c", GROUP="dialout"
+```
+```bash
+sudo udevadm control --reload
+```
