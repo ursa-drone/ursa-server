@@ -1,0 +1,7 @@
+<library path="lib/libursa_local_planner">
+  <class name="ursa_local_planner/UrsaPlannerROS" type="ursa_local_planner::UrsaPlannerROS" base_class_type="nav_core::BaseLocalPlanner">
+    <description>
+      A implementation of a local planner for UAV OFFBOARD control on PX4.
+    </description>
+  </class>
+</library>

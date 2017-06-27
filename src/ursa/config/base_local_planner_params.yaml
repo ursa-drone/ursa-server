@@ -1,0 +1,13 @@
+base_local_planner: ursa_local_planner/UrsaPlannerROS
+
+DWAPlannerROS:
+  max_vel_x: 10
+  min_vel_x: 0
+  max_vel_y: 10
+  min_vel_y: 0
+  max_rot_vel: 10
+  min_in_place_vel_theta: 0
+
+  acc_lim_theta: 3.2
+  acc_lim_x: 10
+  acc_lim_y: 10
