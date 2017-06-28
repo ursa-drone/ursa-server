@@ -1,17 +1,15 @@
-<!--
-  Copyright 2017 - LAOSAAC
-
--->
+<!-- Copyright 2017 - LAOSAAC -->
 
 <launch>
-    <param name="robot_description"
-    textfile="$(find ursa)/urdf/robot_description.urdf" />
+    <!-- Command line arguments -->
+    <arg name="desktop" default="0" doc="decides whether to launch urg_node from desktop or drone" />
+    <arg name="scan" default="0" doc="" />
 
-    <node name="robot_state_publisher" pkg="robot_state_publisher"
-    type="robot_state_publisher" />
+    <!-- Launch robot description file and publisher -->
+    <param name="robot_description" textfile="$(find ursa)/urdf/robot_description.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
     <!-- Setup urg_node -->
-    <arg name="desktop" default="0" doc="decides whether to launch urg_node from desktop or drone" />
     <group if="$(arg desktop)">
           <node name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
     </group>
@@ -20,11 +18,16 @@
         <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
     </group>
 
+    <!-- Replace nan data with MAX_RANGE + 1 -->
+    <node name="scan_filtered_nans" pkg="laser_scanner_modifier" type="scan_filtered_nans.py" respawn="true" />
+
+    <!-- Start cartographer -->
     <node name="cartographer_node" pkg="cartographer_ros"
-      type="cartographer_node" args="
+          type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
           -configuration_basename cartographer_config.lua"
-      output="screen">
+          output="screen">
+          <remap from='scan' to='scan_filtered_nans'/>
     </node>
 
     <node name="rviz" pkg="rviz" type="rviz" required="true"
