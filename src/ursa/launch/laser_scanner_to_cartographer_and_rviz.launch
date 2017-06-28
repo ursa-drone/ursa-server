@@ -5,7 +5,7 @@
 
 <launch>
     <param name="robot_description"
-    textfile="$(find ursa)/urdf/handheld_hokuyo.urdf" />
+    textfile="$(find ursa)/urdf/robot_description.urdf" />
 
     <node name="robot_state_publisher" pkg="robot_state_publisher"
     type="robot_state_publisher" />

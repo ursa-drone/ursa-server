@@ -1,7 +1,6 @@
 <launch>
-	<node name="listener" pkg="debug" type="listener.py" respawn="true" />
+    <node name="listener" pkg="debug" type="listener.py" respawn="true" />
 
-
-	<machine name="drone" address="10.42.0.2" user="pi" env-loader="~/catkin_ws/devel/env.sh"/>
-	<node machine="drone" name="talker" pkg="test" type="talker.py" respawn="true" />
+    <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/catkin_ws/devel/env.sh"/>
+    <node machine="drone" name="talker" pkg="test" type="talker.py" respawn="true" />
 </launch>
