@@ -136,7 +136,6 @@ namespace ursa_local_planner {
     //when we get a new plan, we also want to clear any latch we may have on goal tolerances
     latchedStopRotateController_.resetLatching();
 
-    ROS_INFO("Got new plan");
     return dp_->setPlan(orig_global_plan);
   }
 
@@ -268,8 +267,6 @@ namespace ursa_local_planner {
     }
     ROS_DEBUG_NAMED("ursa_local_planner", "Received a transformed plan with %zu points.", transformed_plan.size());
 
-    ROS_INFO_NAMED("ursa_local_planner","UPDATING PLAN/COSTS");
-
     // update plan in dwa_planner even if we just stop and rotate, to allow checkTrajectory
     dp_->updatePlanAndLocalCosts(current_pose_, transformed_plan);
 
@@ -278,7 +275,6 @@ namespace ursa_local_planner {
       //publish an final plan because we've reached our goal position
       publishLocalPlan(transformed_plan);
     } else {
-      ROS_INFO_NAMED("ursa_local_planner","UPDATING VELOCITY");
       bool isOk = dwaComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {
         publishGlobalPlan(transformed_plan);

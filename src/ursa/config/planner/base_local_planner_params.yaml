@@ -1,6 +1,6 @@
 base_local_planner: ursa_local_planner/UrsaPlannerROS
 
-DWAPlannerROS:
+UrsaPlannerROS:
   max_vel_x: 10
   min_vel_x: 0
   max_vel_y: 10

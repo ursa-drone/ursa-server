@@ -96,7 +96,6 @@ void UrsaTrajectoryGenerator::initialise(
       test_point[0]=w.pose.position.x;
       test_point[1]=w.pose.position.y;
       test_point[2]=tf::getYaw(w.pose.orientation);
-      ROS_INFO("YAW: %f",test_point[2]);
       sample_params_.push_back(test_point);
     }
   }
