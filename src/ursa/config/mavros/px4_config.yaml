@@ -114,28 +114,13 @@ mission:
 
 # distance_sensor (PX4 only)
 distance_sensor:
-  hrlv_ez4_pub:
+  sonar_sensor:
     id: 0
-    frame_id: "hrlv_ez4_sonar"
-    orientation: ROLL_180 # RPY:{180.0, 0.0, 0.0}
+    frame_id: "sonar_sensor"
+    orientation: NONE 
     field_of_view: 0.0  # XXX TODO
     send_tf: true
-    sensor_position: {x:  0.0, y:  0.0, z:  -0.1}
-  lidarlite_pub:
-    id: 1
-    frame_id: "lidarlite_laser"
-    orientation: ROLL_180
-    field_of_view: 0.0  # XXX TODO
-    send_tf: true
-    sensor_position: {x:  0.0, y:  0.0, z:  -0.1}
-  sonar_1_sub:
-    subscriber: true
-    id: 2
-    orientation: ROLL_180
-  laser_1_sub:
-    subscriber: true
-    id: 3
-    orientation: ROLL_180
+    sensor_position: {x:  0.0, y:  0.0, z:  0.0}
 
 ## Currently available orientations:
 #    Check http://wiki.ros.org/mavros/Enumerations
@@ -163,7 +148,7 @@ vision_pose:
   tf:
     listen: true           # enable tf listener (disable topic subscribers)
     frame_id: "map"
-    child_frame_id: "base_link"
+    child_frame_id: "drone_link"
     rate_limit: 10.0
 
 # vision_speed_estimate
