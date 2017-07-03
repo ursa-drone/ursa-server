@@ -3,7 +3,6 @@
 <launch>
     <!-- Command line arguments -->
     <arg name="desktop" default="0" doc="decides whether to launch urg_node from desktop or drone" />
-    <arg name="scan" default="0" doc="" />
 
     <!-- Launch robot description file and publisher -->
     <param name="robot_description" textfile="$(find ursa)/urdf/ursa.urdf" />
@@ -13,7 +12,7 @@
     <include file="$(find ursa)/launch/px4.launch" />
 
     <!-- Set the altitude of drone -->
-    <node name="set_altitude" pkg="ursa" type="pose_reduced.py" respawn="false" />
+    <node name="pose_reduced" pkg="ursa" type="pose_reduced.py" respawn="false" />
 
     <!-- Setup urg_node -->
     <group if="$(arg desktop)">
