@@ -2,7 +2,6 @@
 
 <launch>
     <!-- Command line arguments -->
-    <arg name="desktop" default="0" doc="decides whether to launch urg_node from desktop or drone" />
 
     <!-- Launch robot description file and publisher -->
     <param name="robot_description" textfile="$(find ursa)/urdf/ursa.urdf" />
@@ -12,28 +11,23 @@
     <include file="$(find ursa)/launch/mavros.launch" />
 
     <!-- Set the altitude of drone -->
-    <node name="pose_reduced" pkg="ursa" type="pose_reduced.py" respawn="false" />
+    <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true" />
 
     <!-- Setup urg_node -->
-    <group if="$(arg desktop)">
-          <node name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
-    </group>
-    <group unless="$(arg desktop)">
-        <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
-        <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
-    </group>
+    <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+    <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
 
     <!-- Replace nan data with MAX_RANGE + 1 -->
     <node name="scan_filtered_nans" pkg="laser_scanner_modifier" type="scan_filtered_nans.py" respawn="true" />
 
     <!-- Start cartographer -->
-    <node name="cartographer_node" pkg="cartographer_ros"
+<!--     <node name="cartographer_node" pkg="cartographer_ros"
           type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
-          -configuration_basename cartographer_config.lua"
-          output="screen">
+          -configuration_basename cartographer_config.lua">
           <remap from='scan' to='scan_filtered_nans'/>
-    </node>
+          <remap from='imu' to='/mavros/imu/data'/>
+    </node> -->
 
     <node name="rviz" pkg="rviz" type="rviz" required="true"
       args="-d $(find cartographer_ros)/configuration_files/demo_2d.rviz" />
