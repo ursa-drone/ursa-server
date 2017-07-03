@@ -1,0 +1,13 @@
+<launch>
+    <!-- Launch robot description file and publisher -->
+    <param name="robot_description" textfile="$(find ursa)/urdf/ursa.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+    <!-- Launch MAVROS for the px4 stack -->
+    <group>
+        <include file="$(find ursa)/launch/px4.launch" />
+    </group>
+
+    <!-- Set the altitude of drone -->
+    <node name="set_altitude" pkg="ursa" type="pose_reduced.py" respawn="false" />
+</launch>
