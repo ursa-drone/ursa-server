@@ -1,0 +1,9 @@
+<launch>
+    <!-- Launch robot description file and publisher -->
+    <param name="robot_description" textfile="$(find debug)/urdf/ursa.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <node pkg="tf" type="static_transform_publisher" name="map_base_link_broadcaster" args="0 0 0 0 0 0 /map /base_link 100" />
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find debug)/config/rviz_config.rviz" />
+    <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+    <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+</launch>

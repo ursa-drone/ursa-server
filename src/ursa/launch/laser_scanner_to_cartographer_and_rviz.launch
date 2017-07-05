@@ -13,7 +13,7 @@
     <include file="$(find ursa)/launch/mavros.launch" />
 
     <!-- Set the altitude of drone -->
-    <node name="set_altitude" pkg="ursa" type="pose_reduced.py" respawn="false" />
+    <!-- <node name="set_altitude" pkg="ursa" type="pose_reduced.py" respawn="false" /> -->
 
     <!-- Setup urg_node -->
     <group if="$(arg desktop)">
