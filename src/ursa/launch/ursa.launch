@@ -14,7 +14,7 @@
     <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true" />
 
     <!-- Setup urg_node -->
-    <machine name="drone" address="10.42.0.2" user="pi" env-loader="~/ursa_ws/devel/env.sh"/>
+    <machine name="drone" address="10.42.0.101" user="pi"/>
     <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
 
     <!-- Replace nan data with MAX_RANGE + 1 -->
