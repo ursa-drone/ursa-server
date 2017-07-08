@@ -15,12 +15,10 @@ def rangeCB(data):
     t = geometry_msgs.msg.TransformStamped()
     t.header.stamp = rospy.Time.now()
     t.header.frame_id = "base_link"
-    # t.header.frame_id = "map"
     t.child_frame_id = "drone_link"
     t.transform.translation.x = 0.0
     t.transform.translation.y = 0.0
-    #t.transform.translation.z = data.range
-    t.transform.translation.z = 0.0
+    t.transform.translation.z = data.range
     q = tf.transformations.quaternion_from_euler(0, 0, 0)
     t.transform.rotation.x = q[0]
     t.transform.rotation.y = q[1]

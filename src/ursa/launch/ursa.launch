@@ -18,14 +18,14 @@
     <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
 
     <!-- Replace nan data with MAX_RANGE + 1 -->
-    <node name="scan_flitered_nans" pkg="laser_scanner_modifier" type="scan_filtered_nans.py" respawn="true" />
+<!--     <node name="scan_filtered_nans" pkg="laser_scanner_modifier" type="scan_filtered_nans.py" respawn="true" /> -->
 
     <!-- Start cartographer -->
     <node name="cartographer_node" pkg="cartographer_ros"
           type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
           -configuration_basename cartographer_config.lua">
-          <remap from='scan' to='scan_filtered_nans'/>
+<!--           <remap from='scan' to='scan_filtered_nans'/> -->
           <remap from='imu' to='/mavros/imu/data'/>
     </node>
 
