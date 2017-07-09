@@ -25,7 +25,7 @@ options = {
 MAP_BUILDER.use_trajectory_builder_2d = true
 
 -- Custom parameters
-TRAJECTORY_BUILDER_2D.use_imu_data = false
+TRAJECTORY_BUILDER_2D.use_imu_data = true
 TRAJECTORY_BUILDER_2D.max_range = 5.6
 TRAJECTORY_BUILDER_2D.use_online_correlative_scan_matching = true
 TRAJECTORY_BUILDER_2D.missing_data_ray_length = 1
