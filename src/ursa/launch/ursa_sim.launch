@@ -39,7 +39,7 @@
           -configuration_basename ursa_sim.lua"
       output="screen">
     <remap from="scan" to="/laser/scan" />
-    <remap from="imu" to="/mavros/imu/data" />
+    <remap from="imu" to="/mavros/imu/data_raw" />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" required="true"
