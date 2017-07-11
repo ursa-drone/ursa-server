@@ -8,6 +8,7 @@ UrsaPlannerROS:
   max_rot_vel: 10
   min_in_place_vel_theta: 0
 
+  # set acceleration limits of the robot
   acc_lim_theta: 3.2
   acc_lim_x: 10
   acc_lim_y: 10
