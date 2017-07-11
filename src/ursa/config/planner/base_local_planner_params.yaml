@@ -1,6 +1,7 @@
 base_local_planner: ursa_local_planner/UrsaPlannerROS
 
 UrsaPlannerROS:
+  # set velocity limits
   max_vel_x: 10
   min_vel_x: 0
   max_vel_y: 10
@@ -8,7 +9,23 @@ UrsaPlannerROS:
   max_rot_vel: 10
   min_in_place_vel_theta: 0
 
-  # set acceleration limits of the robot
+  # set acceleration limits
   acc_lim_theta: 3.2
   acc_lim_x: 10
   acc_lim_y: 10
+
+  # set tolerance on achieving goal
+  yaw_goal_tolerance: 0.05
+  xy_goal_tolerance: 0.1
+
+  # time and granularity to forward simulate trajectories
+  sim_time: 1.0
+  sim_granularity: 0.025 # step size in meters to take between points
+  vx_sample: 3 # no. samples to use when exlporing x velocity space
+  vhtheta_samples: 20
+
+  # dynamic window approach
+  dwa: true
+
+  # oscillation prevention
+  oscillation_reset_dist: 0.05
