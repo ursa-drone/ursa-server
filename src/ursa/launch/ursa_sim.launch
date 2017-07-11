@@ -31,7 +31,10 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher"
     type="robot_state_publisher" />
 
-  <node name="ursa_node" pkg="ursa" type="pose.py" output="screen" required="true"/>
+    <!-- SCRIPTS from URSA package -->
+  <node name="ursa_sim_node" pkg="ursa" type="simulation.py" output="screen" required="true"/>
+  <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true"/>
+  <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
 
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
@@ -39,7 +42,7 @@
           -configuration_basename ursa_sim.lua"
       output="screen">
     <remap from="scan" to="/laser/scan" />
-    <remap from="imu" to="/mavros/imu/data_raw" />
+    <remap from="imu" to="filtered_imu" />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz" required="true"

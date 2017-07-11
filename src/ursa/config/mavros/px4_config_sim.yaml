@@ -52,7 +52,7 @@ global_position:
 
 # imu_pub
 imu:
-  frame_id: "fcu"
+  frame_id: "imu_link"
   # need find actual values
   linear_acceleration_stdev: 0.0003
   angular_velocity_stdev: !degrees 0.02
