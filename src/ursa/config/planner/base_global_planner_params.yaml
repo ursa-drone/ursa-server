@@ -1,4 +1,4 @@
-base_global_planner: global_planner/GlobalPlanner
+# base_global_planner: global_planner/GlobalPlanner
 planner_frequency: 2.0
 controller_frequency: 5.0
 

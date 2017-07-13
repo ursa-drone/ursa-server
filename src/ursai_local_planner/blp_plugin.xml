@@ -1,0 +1,7 @@
+<library path="lib/libursai_local_planner">
+  <class name="ursai_local_planner/URSAIPlannerROS" type="ursai_local_planner::URSAIPlannerROS" base_class_type="nav_core::BaseLocalPlanner">
+    <description>
+      A implementation of a local planner using either a URSAI approach based on configuration parameters.
+    </description>
+  </class>
+</library>
