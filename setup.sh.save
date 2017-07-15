@@ -21,16 +21,13 @@
 
 # install ROS
     sudo apt-get install ros-kinetic-desktop-full
-# setup bashrc for future sessions (and this session)
-    echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-    source ~/.bashrc
     sudo rosdep init
     rosdep update
 
     # install rosinstall
     sudo apt-get install python-rosinstall
 
-# install Sublime 3
+ install Sublime 3
     sudo apt-get install sublime-text-installer
 
 # catkin tools
@@ -42,17 +39,16 @@
 # install navigation stack
     sudo apt-get install ros-kinetic-navigation
 
-# install protobuf compiler
-	sudo apt-get install protobuf-compiler
+########################
+# setup environment
+########################
+# setup bashrc
+    echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+    source ~/.bashrc
 
-# install python jinja
-	sudo apt-get install python-jinja2
-
-# clone ursa server and build
-git clone https://github.com/ursa-drone/ursa-server.git
-git submodule update --init --recursive
+# clone ursa server
+git --recursive clone https://github.com/ursa-drone/ursa-server.git
 rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
-catkin build
 
 
 
