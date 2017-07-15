@@ -22,6 +22,7 @@ def rangeCB(data):
     global tf_buffer
     t = geometry_msgs.msg.TransformStamped()
     br = tf2_ros.TransformBroadcaster()
+
     t.header.stamp = rospy.Time.now()
     t.header.frame_id = "base_link"
     t.child_frame_id = "drone_link"
@@ -49,54 +50,35 @@ def rangeCB(data):
         t.transform.translation.z = data.range
     br.sendTransform(t)
 
-def waypointCB(data):
-    global tf_buffer
-    transform = tf_buffer.lookup_transform("map",
-                                       data.header.frame_id, #source frame
-                                       rospy.Time(0), #get the tf at first available time
-                                       rospy.Duration(1.0)) #wait for 1 second
-    mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
-    global setpoint
-    br=tf2_ros.TransformBroadcaster()
-    setpoint.header.frame_id = "map"
-    setpoint.child_frame_id = "setpoint"
-    setpoint.transform.translation.x = mapPose.pose.position.x
-    setpoint.transform.translation.y = mapPose.pose.position.y
-    setpoint.transform.translation.z = 1.0
-    setpoint.transform.rotation.x = mapPose.pose.orientation.x
-    setpoint.transform.rotation.y = mapPose.pose.orientation.y
-    setpoint.transform.rotation.z = mapPose.pose.orientation.z
-    setpoint.transform.rotation.w = mapPose.pose.orientation.w
-    br.sendTransform(setpoint)
-    rate = rospy.Rate(20) # 20hz
-    rate.sleep()
+# def waypointCB(data):
+#     global tf_buffer
+#     transform = tf_buffer.lookup_transform("map",
+#                                        data.header.frame_id, #source frame
+#                                        rospy.Time(0), #get the tf at first available time
+#                                        rospy.Duration(1.0)) #wait for 1 second
+#     mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+#     global setpoint
+#     br=tf2_ros.TransformBroadcaster()
+#     setpoint.header.frame_id = "map"
+#     setpoint.child_frame_id = "setpoint"
+#     setpoint.transform.translation.x = mapPose.pose.position.x
+#     setpoint.transform.translation.y = mapPose.pose.position.y
+#     setpoint.transform.translation.z = 1.0
+#     setpoint.transform.rotation.x = mapPose.pose.orientation.x
+#     setpoint.transform.rotation.y = mapPose.pose.orientation.y
+#     setpoint.transform.rotation.z = mapPose.pose.orientation.z
+#     setpoint.transform.rotation.w = mapPose.pose.orientation.w
+#     br.sendTransform(setpoint)
+#     rate = rospy.Rate(20) # 20hz
+#     rate.sleep()
 
 def start():
     global pose
     global setpoint
     rate = rospy.Rate(20) # 20hz
     rate.sleep()
-    
-    local_pos_pub = rospy.Publisher('/mavros/setpoint_position/local', geometry_msgs.msg.PoseStamped, queue_size=10)
-    pose.pose.position.x = 0
-    pose.pose.position.y = 0
-    pose.pose.position.z = 1
-    local_pos_pub.publish(pose)
 
-    waypoints=[mavros_msgs.msg.Waypoint()]
-    waypoints[0].frame=0
-    waypoints[0].command=16
-    waypoints[0].is_current=1
-    waypoints[0].autocontinue=0
-    waypoints[0].param1=100
-    waypoints[0].param2=0.1
-    waypoints[0].param3=0
-    waypoints[0].param4=0
-    waypoints[0].x_lat=0
-    waypoints[0].y_long=0
-    waypoints[0].z_alt=2
-
-    goal_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/local_plan', nav_msgs.msg.Path, waypointCB, queue_size=10)
+    # goal_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/local_plan', nav_msgs.msg.Path, waypointCB, queue_size=10)
     range_sub = rospy.Subscriber('/range', sensor_msgs.msg.Range, rangeCB, queue_size=10)
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)  
     arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)  
@@ -127,19 +109,6 @@ def start():
         #local_pos_pub.publish(pose)
         #br.sendTransform(setpoint)
         rate.sleep()
-
-
-def takeoff():
-    takeoff = rospy.ServiceProxy('/mavros/cmd/takeoff', mavros_msgs.srv.CommandTOL)  
-    print "takeoff: ", takeoff(0,0,0,0,40)
-    
-
-def land():
-    set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)  
-    print "set mode: ", set_mode(208,'GUIDED')
-
-    land = rospy.ServiceProxy('/mavros/cmd/land', mavros_msgs.srv.CommandTOL)  
-    print "land: ", land(0,0,0,0,0)
 
  
 if __name__ == '__main__':

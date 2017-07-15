@@ -28,11 +28,11 @@
       </include>
   </group>
 
-  <node name="robot_state_publisher" pkg="robot_state_publisher"
-    type="robot_state_publisher" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
     <!-- SCRIPTS from URSA package -->
-  <node name="ursa_sim_node" pkg="ursa" type="simulation.py" output="screen" required="true"/>
+  <node name="set_drone_link" pkg="ursa" type="set_drone_link.py" output="screen" required="true"/>
+  <node name="set_drone_height" pkg="ursa" type="set_drone_height.py" output="screen" required="true"/>
   <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true"/>
   <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
 

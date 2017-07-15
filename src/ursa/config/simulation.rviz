@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Cost Grid (for planning)1
       Splitter Ratio: 0.600670993
     Tree Height: 726
   - Class: rviz/Selection
@@ -149,7 +150,7 @@ Visualization Manager:
       Submaps:
         All Enabled: true
         Trajectory 0:
-          0.10: true
+          0.6: true
       Topic: /submap_list
       Tracking frame: base_link
       Unreliable: false
@@ -269,7 +270,7 @@ Visualization Manager:
       Topic: /move_base_simple/goal
       Unreliable: false
       Value: true
-    - Alpha: 0.5
+    - Alpha: 0.300000012
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -323,24 +324,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 7.40258646
+      Distance: 5.33153629
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.722111583
-        Y: 0.818244934
-        Z: -7.62939453e-06
+        X: 0.429023325
+        Y: -0.418672562
+        Z: -4.76837158e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.550398886
+      Pitch: 0.510398984
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 5.08855867
+      Yaw: 5.00855589
     Saved: ~
 Window Geometry:
   Displays:

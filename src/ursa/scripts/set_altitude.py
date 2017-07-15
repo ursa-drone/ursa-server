@@ -10,8 +10,8 @@ def set_position(x, y, z):
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
     arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
 
-    # set_mode(0, "OFFBOARD")
-    # arm(True)
+    set_mode(0, "OFFBOARD")
+    arm(True)
 
     ps.pose.position.x = x
     ps.pose.position.y = y
