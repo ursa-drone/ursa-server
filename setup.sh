@@ -39,25 +39,28 @@ echo "########################"
     echo "Y" | sudo apt-get install ros-kinetic-mavros
 
 # install mavros extras
-	sudo apt-get install ros-kinetic-mavros-extras
+    sudo apt-get install ros-kinetic-mavros-extras
 
 # install navigation stack
     echo "Y" | sudo apt-get install ros-kinetic-navigation
 
+# install iPython
+    echo "Y" | sudo apt-get install ipython
+
 # install protobuf compiler
-	sudo apt-get install protobuf-compiler
+    sudo apt-get install protobuf-compiler
 
 # install python jinja
-	sudo apt-get install python-jinja2
+    sudo apt-get install python-jinja2
 
 echo "########################"
 echo "# setup environment"
 echo "########################"
 # setup bashrc
-	echo "source ~/ursa-server/devel/setup.bash" >> ~/.bashrc
-	echo "alias rtl=\"rostopic list\"" >> ~/.bashrc
-	echo "alias rte=\"rostopic echo\"" >> ~/.bashrc
-	echo "alias rpl=\"rosparam list\"" >> ~/.bashrc
+    echo "source ~/ursa-server/devel/setup.bash" >> ~/.bashrc
+    echo "alias rtl=\"rostopic list\"" >> ~/.bashrc
+    echo "alias rte=\"rostopic echo\"" >> ~/.bashrc
+    echo "alias rpl=\"rosparam list\"" >> ~/.bashrc
     source ~/.bashrc
 
 # clone ursa-server submodules and build
