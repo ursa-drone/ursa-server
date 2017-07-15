@@ -41,6 +41,9 @@ echo "########################"
 # install mavros
     echo "Y" | sudo apt-get install ros-kinetic-mavros
 
+# install mavros extras
+	sudo apt-get install ros-kinetic-mavros-extras
+
 # install navigation stack
     echo "Y" | sudo apt-get install ros-kinetic-navigation
 
@@ -50,15 +53,18 @@ echo "# setup environment"
 echo "########################"
 # setup bashrc
     echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+	echo "source ~/ursa-server/devel/setup.bash" >> ~/.bashrc
+	echo "alias rtl=\"rostopic list\"" >> ~/.bashrc
+	echo "alias rte=\"rostopic echo\"" >> ~/.bashrc
+	echo "alias rpl=\"rosparam list\"" >> ~/.bashrc
     source ~/.bashrc
 
-# clone ursa server
-git --recursive clone https://github.com/ursa-drone/ursa-server.git
+# clone ursa-server
+git clone --recursive https://github.com/ursa-drone/ursa-server.git
 rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 
-
-
-
+# clone Firmware
+git clone --recursive https://github.com/ursa-drone/Firmware.git
 
 
 
