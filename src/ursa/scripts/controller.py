@@ -8,6 +8,7 @@ import tf2_ros
 def set_position(x, y, z):
     br = tf2_ros.TransformBroadcaster()
     setpoint = geometry_msgs.msg.TransformStamped()
+
     setpoint.header.stamp = rospy.Time.now()
     setpoint.header.frame_id = "map"
     setpoint.child_frame_id = "setpoint"
@@ -17,19 +18,48 @@ def set_position(x, y, z):
     setpoint.transform.rotation.w = 1
     br.sendTransform(setpoint)
 
-if __name__ == '__main__':
-    rospy.init_node('ursa_controller', anonymous=True)
-    set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)  
-    arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)  
-    rate=rospy.Rate(20)
-    for i in range(20*15):
+def setpoint_buffer(rate):
+    for i in range(10):
+        print i,
         set_position(0, 0, 1)
         rate.sleep()
-    set_mode(0,"OFFBOARD" )
-    arm(True)
-    for i in range(20*10):
+
+if __name__ == '__main__':
+    rospy.init_node('ursa_controller', anonymous=True)
+    rate = rospy.Rate(20)
+
+    # setup services
+    set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
+    arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
+    # rc_override = rospy.Publisher('/mavros/rc/override', mavros_msgs.msg.OverrideRCIn)
+
+    # set_mode(0, "POSCTL")
+    # arm(True)
+
+    # for i in range(8):
+    #     rc_cmds = mavros_msgs.msg.OverrideRCIn()
+    #     for j in range(100):
+    #         rc_cmds.channels[i] = 1
+    #         rc_override.publish(rc_cmds)
+    #         rate.sleep()
+
+    # rospy.spin()
+
+    previous_input = None
+    while not rospy.is_shutdown():
+        # get user input
+        user_input = raw_input()
+        print ">>> ", user_input
+
+        if user_input == 'l':
+            set_mode(0, "AUTO.LAND")
+        elif user_input == 't':
+            setpoint_buffer(rate)
+            set_mode(0, "OFFBOARD")
+            arm(True)
+        elif user_input == 'd':
+            arm(False)
+        elif user_input == 'p':
+            set_mode(0, "POSCTL")
+
         rate.sleep()
-    set_position(0, 0, 0)
-    for i in range(20*10):
-        rate.sleep()
-    arm(False)
