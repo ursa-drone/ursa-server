@@ -15,13 +15,16 @@
 
     <!-- Setup urg_node -->
     <machine name="drone" address="10.42.0.101" user="pi"/>
-    <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true" />
+    <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true"/>
 
     <!-- Replace nan data with MAX_RANGE + 1 -->
     <node name="scan_filtered_nans" pkg="ursa" type="scan_filtered_nans.py" respawn="true" />
 
-    <!-- Filted IMU data based on timestamps -->
+    <!-- Filter IMU data based on timestamps and pref clean data -->
     <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
+
+    <!-- Control flight -->
+<!--     <node name="ursa_controller" pkg="ursa" type="controller.py" output="screen" required="true"/> -->
 
     <!-- Start cartographer -->
     <node name="cartographer_node" pkg="cartographer_ros"

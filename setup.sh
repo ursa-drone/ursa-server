@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "########################"
 echo "# add repos"
 echo "########################"
@@ -14,7 +13,6 @@ echo "# update"
 echo "########################"
     sudo apt-get update
 
-
 echo "########################"
 echo "# install"
 echo "########################"
@@ -23,14 +21,13 @@ echo "########################"
 
 # install ROS
     echo "Y" | sudo apt-get install ros-kinetic-desktop-full
+    # setup bashrc for future sessions (and this session)
+    echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+    source ~/.bashrc
     sudo rosdep init
     rosdep update
-
     # install rosinstall
     sudo apt-get install python-rosinstall
-
-# install Gazebo
-    wget -O /tmp/gazebo5_install.sh http://osrf-distributions.s3.amazonaws.com/gazebo/gazebo5_install.sh; sudo sh /tmp/gazebo5_install.sh
 
 # install Sublime 3
     sudo apt-get install sublime-text-installer
@@ -42,31 +39,37 @@ echo "########################"
     echo "Y" | sudo apt-get install ros-kinetic-mavros
 
 # install mavros extras
-	sudo apt-get install ros-kinetic-mavros-extras
+    sudo apt-get install ros-kinetic-mavros-extras
 
 # install navigation stack
     echo "Y" | sudo apt-get install ros-kinetic-navigation
 
 # install iPython
-	echo "Y" | sudo apt-get install ipython
+    echo "Y" | sudo apt-get install ipython
 
+# install protobuf compiler
+    sudo apt-get install protobuf-compiler
+
+# install python jinja
+    sudo apt-get install python-jinja2
 
 echo "########################"
 echo "# setup environment"
 echo "########################"
 # setup bashrc
-    echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
-	echo "source ~/ursa-server/devel/setup.bash" >> ~/.bashrc
-	echo "alias rtl=\"rostopic list\"" >> ~/.bashrc
-	echo "alias rte=\"rostopic echo\"" >> ~/.bashrc
-	echo "alias rpl=\"rosparam list\"" >> ~/.bashrc
+    echo "source ~/ursa-server/devel/setup.bash" >> ~/.bashrc
+    echo "alias rtl=\"rostopic list\"" >> ~/.bashrc
+    echo "alias rte=\"rostopic echo\"" >> ~/.bashrc
+    echo "alias rpl=\"rosparam list\"" >> ~/.bashrc
     source ~/.bashrc
 
-# clone ursa-server
-git clone --recursive https://github.com/ursa-drone/ursa-server.git
+# clone ursa-server submodules and build
+git submodule update --init --recursive
 rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
+catkin build
 
 # clone Firmware
+cd $HOME
 git clone --recursive https://github.com/ursa-drone/Firmware.git
 
 
