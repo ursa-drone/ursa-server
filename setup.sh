@@ -47,6 +47,9 @@ echo "########################"
 # install navigation stack
     echo "Y" | sudo apt-get install ros-kinetic-navigation
 
+# install iPython
+	echo "Y" | sudo apt-get install ipython
+
 
 echo "########################"
 echo "# setup environment"
