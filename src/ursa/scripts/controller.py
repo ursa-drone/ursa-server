@@ -31,19 +31,6 @@ if __name__ == '__main__':
     # setup services
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
     arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
-    # rc_override = rospy.Publisher('/mavros/rc/override', mavros_msgs.msg.OverrideRCIn)
-
-    # set_mode(0, "POSCTL")
-    # arm(True)
-
-    # for i in range(8):
-    #     rc_cmds = mavros_msgs.msg.OverrideRCIn()
-    #     for j in range(100):
-    #         rc_cmds.channels[i] = 1
-    #         rc_override.publish(rc_cmds)
-    #         rate.sleep()
-
-    # rospy.spin()
 
     previous_input = None
     while not rospy.is_shutdown():

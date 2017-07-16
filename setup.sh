@@ -13,6 +13,7 @@ echo "# update"
 echo "########################"
     sudo apt-get update
 
+
 echo "########################"
 echo "# install"
 echo "########################"
@@ -52,6 +53,7 @@ echo "########################"
 
 # install python jinja
     sudo apt-get install python-jinja2
+
 
 echo "########################"
 echo "# setup environment"

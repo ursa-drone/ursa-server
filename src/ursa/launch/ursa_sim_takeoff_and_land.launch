@@ -40,7 +40,7 @@
     <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
 
     <!-- Control flight -->
-    <node name="ursa_controller" pkg="ursa" type="controller.py" output="screen" required="true"/>
+    <node name="ursa_controller" pkg="ursa" type="controller_with_arrow_keys.py" output="screen" required="true"/>
 
     <!-- Start cartographer -->
   <node name="cartographer_node" pkg="cartographer_ros"
