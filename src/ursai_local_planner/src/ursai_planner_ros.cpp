@@ -58,16 +58,16 @@ using namespace std;
 namespace ursai_local_planner {
 
   void URSAIPlannerROS::reconfigureCB(URSAIPlannerConfig &config, uint32_t level) {
-      cout << "@@@@@URSAIPlannerROS::reconfigureCB" << endl;
+      // cout << "@@@@@URSAIPlannerROS::reconfigureCB" << endl;
       if (setup_ && config.restore_defaults) {
         config = default_config_;
         config.restore_defaults = false;
       }
       if ( ! setup_) {
-        cout << "@@@@@----setup_: " << setup_ << endl;
-        cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
+        // cout << "@@@@@----setup_: " << setup_ << endl;
+        // cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
         default_config_ = config;
-        cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
+        // cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
         setup_ = true; // set to true, so default config is not overwritten
       }
 
@@ -98,17 +98,17 @@ namespace ursai_local_planner {
 
   URSAIPlannerROS::URSAIPlannerROS() : initialized_(false),
       odom_helper_("odom"), setup_(false) { // setup = false so that that reconfigure assigns the configuration file to default_config_
-      cout << "@@@@@URSAIPlannerROS::URSAIPlannerROS" << endl;
+      // cout << "@@@@@URSAIPlannerROS::URSAIPlannerROS" << endl;
   }
 
   void URSAIPlannerROS::initialize(
       std::string name,
       tf::TransformListener* tf,
       costmap_2d::Costmap2DROS* costmap_ros) {
-      cout << "@@@@@URSAIPlannerROS::initialize" << endl;
-      cout << "@@@@@----name: " << name << endl;
-      cout << "@@@@@----tf: " << tf->allFramesAsDot() << endl;
-      cout << "@@@@@----costmap_ros: " << costmap_ros->getGlobalFrameID() << endl;
+      // cout << "@@@@@URSAIPlannerROS::initialize" << endl;
+      // cout << "@@@@@----name: " << name << endl;
+      // cout << "@@@@@----tf: " << tf->allFramesAsDot() << endl;
+      // cout << "@@@@@----costmap_ros: " << costmap_ros->getGlobalFrameID() << endl;
 
     if (! isInitialized()) {
 
@@ -120,24 +120,24 @@ namespace ursai_local_planner {
       // create a local and global publisher
       g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1); // returns a publisher allowing you to publish a message ona topic
                                                                             // <message type>(topic, queue size, latch=when new subscribers, get last message)
-      cout << "@@@@@----g_plan_pub_: " << g_plan_pub_.getTopic() << endl;
+      // cout << "@@@@@----g_plan_pub_: " << g_plan_pub_.getTopic() << endl;
 
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
-      cout << "@@@@@----l_plan_pub_: " << l_plan_pub_.getTopic() << endl;
+      // cout << "@@@@@----l_plan_pub_: " << l_plan_pub_.getTopic() << endl;
 
       // assign some names to our tf and costmap pointers
       tf_ = tf; // tf::TransformListener* tf
-      cout << "@@@@@----tf_: " << tf_->allFramesAsDot() << endl;
+      // cout << "@@@@@----tf_: " << tf_->allFramesAsDot() << endl;
       costmap_ros_ = costmap_ros; // costmap_2d::Costmap2DROS* costmap_ros
-      cout << "@@@@@----costmap_ros_: " << costmap_ros_->getGlobalFrameID() << endl;
+      // cout << "@@@@@----costmap_ros_: " << costmap_ros_->getGlobalFrameID() << endl;
       costmap_ros_->getRobotPose(current_pose_);  // bool  getRobotPose (tf::Stamped< tf::Pose > &global_pose) const
                                                   // std::array<int, 5> n; -- simple declaration of an array, n is standard array of type int and length 5
                                                   // std::vector<int> marks; -- declaration of a vector named marks and type int
                                                   // tf::Stamped< tf::Pose > -- declaration of tf::Stamped of type tf::Pose
                                                   // template class
-      cout << "@@@@@----current_pose_.frame_id_: " << current_pose_.frame_id_ << endl;
-      cout << "@@@@@----current_pose_.stamp_: " << current_pose_.stamp_ << endl;
-      cout << "@@@@@----costmap_ros_->getRobotPose(current_pose_): " << costmap_ros_->getRobotPose(current_pose_) << endl;
+      // cout << "@@@@@----current_pose_.frame_id_: " << current_pose_.frame_id_ << endl;
+      // cout << "@@@@@----current_pose_.stamp_: " << current_pose_.stamp_ << endl;
+      // cout << "@@@@@----costmap_ros_->getRobotPose(current_pose_): " << costmap_ros_->getRobotPose(current_pose_) << endl;
 
       // make sure to update the costmap we'll use for this cycle
       costmap_2d::Costmap2D* costmap = costmap_ros_->getCostmap(); // give a name to the most recent costmap
@@ -174,7 +174,7 @@ namespace ursai_local_planner {
   }
   
   bool URSAIPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan) {
-      cout << "@@@@@URSAIPlannerROS::setPlan" << endl;
+      // cout << "@@@@@URSAIPlannerROS::setPlan" << endl;
     
     if (! isInitialized()) {
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
@@ -188,8 +188,8 @@ namespace ursai_local_planner {
   }
 
   bool URSAIPlannerROS::isGoalReached() {
-      cout << "@@@@@URSAIPlannerROS::isGoalReached" << endl;
-      cout << "@@@@@----URSAIPlannerROS::isGoalReached(return) = " << latchedStopRotateController_.isGoalReached(&planner_util_, odom_helper_, current_pose_) << endl;
+      // cout << "@@@@@URSAIPlannerROS::isGoalReached" << endl;
+      // cout << "@@@@@----URSAIPlannerROS::isGoalReached(return) = " << latchedStopRotateController_.isGoalReached(&planner_util_, odom_helper_, current_pose_) << endl;
 
     if (! isInitialized()) {
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
@@ -209,9 +209,9 @@ namespace ursai_local_planner {
   }
 
   void URSAIPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-      cout << "@@@@@URSAIPlannerROS::publishLocalPlan" << endl;
+      // cout << "@@@@@URSAIPlannerROS::publishLocalPlan" << endl;
       // for(unsigned int i=0; i < path.size(); i++){
-      //   cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
+        // cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
       // }
     base_local_planner::publishPlan(path, l_plan_pub_);
     // Publish a plan for visualization purposes.
@@ -223,15 +223,15 @@ namespace ursai_local_planner {
 
 
   void URSAIPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-      cout << "@@@@@URSAIPlannerROS::publishGlobalPlan" << endl;
+      // cout << "@@@@@URSAIPlannerROS::publishGlobalPlan" << endl;
       // for(unsigned int i=0; i < path.size(); i++){
-      //   cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
+        // cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
       // }
     base_local_planner::publishPlan(path, g_plan_pub_);
   }
 
   URSAIPlannerROS::~URSAIPlannerROS(){
-      cout << "@@@@@URSAIPlannerROS::~URSAIPlannerROS" << endl;
+      // cout << "@@@@@URSAIPlannerROS::~URSAIPlannerROS" << endl;
     //make sure to clean things up
     delete dsrv_;
   }
@@ -239,7 +239,7 @@ namespace ursai_local_planner {
 
 
   bool URSAIPlannerROS::ursaiComputeVelocityCommands(tf::Stamped<tf::Pose> &global_pose, geometry_msgs::Twist& cmd_vel) {
-      cout << "@@@@@URSAIPlannerROS::ursaiComputeVelocityCommands" << endl;
+      // cout << "@@@@@URSAIPlannerROS::ursaiComputeVelocityCommands" << endl;
     // dynamic window sampling approach to get useful velocity commands
     if(! isInitialized()){
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
@@ -252,7 +252,7 @@ namespace ursai_local_planner {
     /* For timing uncomment
     struct timeval start, end;
     double start_t, end_t, t_diff;
-    gettimeofday(&start, NULL);
+    gettimeofday(&start, NULL);+
     */
 
     //compute what trajectory to drive along
@@ -260,6 +260,9 @@ namespace ursai_local_planner {
     drive_cmds.frame_id_ = costmap_ros_->getBaseFrameID();
     
     // call with updated footprint
+      // I feel like this is pretty important
+      // In the tradish implementation of the local planner cmd_vel topic would be published after best path is found
+      // not sure how cmd_vel gets published though
     base_local_planner::Trajectory path = dp_->findBestPath(global_pose, robot_vel, drive_cmds, costmap_ros_->getRobotFootprint());
     //ROS_ERROR("Best: %.2f, %.2f, %.2f, %.2f", path.xv_, path.yv_, path.thetav_, path.cost_);
 
@@ -315,7 +318,7 @@ namespace ursai_local_planner {
 
 
   bool URSAIPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
-      cout << "@@@@@URSAIPlannerROS::computeVelocityCommands" << endl;
+      // cout << "@@@@@URSAIPlannerROS::computeVelocityCommands" << endl;
     // dispatches to either ursai sampling control or stop and rotate control, depending on whether we have been close enough to goal
     if ( ! costmap_ros_->getRobotPose(current_pose_)) {
       ROS_ERROR("Could not get robot pose");

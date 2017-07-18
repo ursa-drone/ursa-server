@@ -61,6 +61,7 @@ void UrsaTrajectoryGenerator::initialise(
 }
 
 
+/**!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!**/
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
     const Eigen::Vector3f& vel,
@@ -140,7 +141,7 @@ bool UrsaTrajectoryGenerator::nextTrajectory(base_local_planner::Trajectory &com
   return result;
 }
 
-/**
+/**!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @param pos current position of robot
  * @param vel unused
  * @param sample_target point on the global plan to generate trajectory
