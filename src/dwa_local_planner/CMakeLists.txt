@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ursai_local_planner)
+project(dwa_local_planner)
 
 find_package(catkin REQUIRED
         COMPONENTS
@@ -13,8 +13,6 @@ find_package(catkin REQUIRED
             pcl_conversions
             roscpp
             tf
-            std_msgs
-            genmsg
         )
 
 find_package(Eigen3 REQUIRED)
@@ -32,28 +30,24 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 # dynamic reconfigure
 generate_dynamic_reconfigure_options(
-    cfg/URSAIPlanner.cfg
+    cfg/DWAPlanner.cfg
 )
-# generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES ursai_local_planner
+    LIBRARIES dwa_local_planner
     CATKIN_DEPENDS
         dynamic_reconfigure
         pluginlib
         roscpp
 )
 
-add_executable(talker src/talker.cpp)
-target_link_libraries(talker ${catkin_LIBRARIES})
+add_library(dwa_local_planner src/dwa_planner.cpp src/dwa_planner_ros.cpp src/my_simple_trajectory_generator.cpp)
+target_link_libraries(dwa_local_planner ${catkin_LIBRARIES})
+add_dependencies(dwa_local_planner dwa_local_planner_gencfg)
+add_dependencies(dwa_local_planner nav_msgs_generate_messages_cpp)
 
-add_library(ursai_local_planner src/ursai_planner.cpp src/ursai_planner_ros.cpp src/ursai_traj_gen.cpp)
-target_link_libraries(ursai_local_planner ${catkin_LIBRARIES})
-add_dependencies(ursai_local_planner ursai_local_planner_gencfg)
-add_dependencies(ursai_local_planner nav_msgs_generate_messages_cpp)
-
-install(TARGETS ursai_local_planner
+install(TARGETS dwa_local_planner
        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        )

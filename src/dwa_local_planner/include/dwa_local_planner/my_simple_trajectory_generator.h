@@ -35,14 +35,15 @@
  * Author: TKruse
  *********************************************************************/
 
-#ifndef URSAI_TRAJECTORY_GENERATOR_H_
-#define URSAI_TRAJECTORY_GENERATOR_H_
+#ifndef SIMPLE_TRAJECTORY_GENERATOR_H_
+#define SIMPLE_TRAJECTORY_GENERATOR_H_
 
+#include <geometry_msgs/PoseStamped.h>
 #include <base_local_planner/trajectory_sample_generator.h>
 #include <base_local_planner/local_planner_limits.h>
 #include <Eigen/Core>
 
-namespace ursai_local_planner {
+namespace base_local_planner {
 
 /**
  * generates trajectories based on equi-distant discretisation of the degrees of freedom.
@@ -58,14 +59,14 @@ namespace ursai_local_planner {
  * trajectory rollout approach will sample max-x-velocities 0m/s up to 1m/s
  * trajectory rollout approach does so respecting the acceleration limit, so it gradually increases velocity
  */
-class URSAITrajectoryGenerator: public base_local_planner::TrajectorySampleGenerator {
+class SimpleTrajectoryGenerator: public base_local_planner::TrajectorySampleGenerator {
 public:
 
-  URSAITrajectoryGenerator() {
+  SimpleTrajectoryGenerator() {
     limits_ = NULL;
   }
 
-  ~URSAITrajectoryGenerator() {}
+  ~SimpleTrajectoryGenerator() {}
 
   /**
    * @param pos current robot position
@@ -79,7 +80,7 @@ public:
   void initialise(
       const Eigen::Vector3f& pos,
       const Eigen::Vector3f& vel,
-      const Eigen::Vector3f& goal,
+      std::vector<geometry_msgs::PoseStamped> global_plan,
       base_local_planner::LocalPlannerLimits* limits,
       const Eigen::Vector3f& vsamples,
       std::vector<Eigen::Vector3f> additional_samples,
@@ -96,7 +97,7 @@ public:
   void initialise(
       const Eigen::Vector3f& pos,
       const Eigen::Vector3f& vel,
-      const Eigen::Vector3f& goal,
+      std::vector<geometry_msgs::PoseStamped> global_plan,
       base_local_planner::LocalPlannerLimits* limits,
       const Eigen::Vector3f& vsamples,
       bool discretize_by_time = false);
@@ -123,7 +124,7 @@ public:
   /**
    * Whether this generator can create more trajectories
    */
-  bool nextTrajectory(base_local_planner::Trajectory &traj);
+  bool nextTrajectory(Trajectory &traj);
 
 
   static Eigen::Vector3f computeNewPositions(const Eigen::Vector3f& pos,

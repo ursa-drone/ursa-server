@@ -34,12 +34,8 @@
 *
 * Author: Eitan Marder-Eppstein
 *********************************************************************/
-// Isaac's additional headers
-#include <iostream>
-#include "ros/ros.h"
-#include "std_msgs/String.h"
 
-#include <ursai_local_planner/ursai_planner_ros.h>
+#include <dwa_local_planner/dwa_planner_ros.h>
 #include <Eigen/Core>
 #include <cmath>
 
@@ -51,24 +47,18 @@
 #include <nav_msgs/Path.h>
 
 //register this planner as a BaseLocalPlanner plugin
-PLUGINLIB_EXPORT_CLASS(ursai_local_planner::URSAIPlannerROS, nav_core::BaseLocalPlanner)
+PLUGINLIB_EXPORT_CLASS(dwa_local_planner::DWAPlannerROS, nav_core::BaseLocalPlanner)
 
-using namespace std;
+namespace dwa_local_planner {
 
-namespace ursai_local_planner {
-
-  void URSAIPlannerROS::reconfigureCB(URSAIPlannerConfig &config, uint32_t level) {
-      // cout << "@@@@@URSAIPlannerROS::reconfigureCB" << endl;
+  void DWAPlannerROS::reconfigureCB(DWAPlannerConfig &config, uint32_t level) {
       if (setup_ && config.restore_defaults) {
         config = default_config_;
         config.restore_defaults = false;
       }
       if ( ! setup_) {
-        // cout << "@@@@@----setup_: " << setup_ << endl;
-        // cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
         default_config_ = config;
-        // cout << "@@@@@----default_config_.sim_granularity: " << default_config_.sim_granularity << endl;
-        setup_ = true; // set to true, so default config is not overwritten
+        setup_ = true;
       }
 
       // update generic local planner params
@@ -92,70 +82,35 @@ namespace ursai_local_planner {
       limits.rot_stopped_vel = config.rot_stopped_vel;
       planner_util_.reconfigureCB(limits, config.restore_defaults);
 
-      // update ursai specific configuration
+      // update dwa specific configuration
       dp_->reconfigure(config);
   }
 
-  URSAIPlannerROS::URSAIPlannerROS() : initialized_(false),
-      odom_helper_("odom"), setup_(false) { // setup = false so that that reconfigure assigns the configuration file to default_config_
-      // cout << "@@@@@URSAIPlannerROS::URSAIPlannerROS" << endl;
+  DWAPlannerROS::DWAPlannerROS() : initialized_(false),
+      odom_helper_("odom"), setup_(false) {
+      ROS_INFO("@@@@@@@@@@ DWA Initialised @@@@@");
   }
 
-  void URSAIPlannerROS::initialize(
+  void DWAPlannerROS::initialize(
       std::string name,
       tf::TransformListener* tf,
       costmap_2d::Costmap2DROS* costmap_ros) {
-      // cout << "@@@@@URSAIPlannerROS::initialize" << endl;
-      // cout << "@@@@@----name: " << name << endl;
-      // cout << "@@@@@----tf: " << tf->allFramesAsDot() << endl;
-      // cout << "@@@@@----costmap_ros: " << costmap_ros->getGlobalFrameID() << endl;
-
     if (! isInitialized()) {
 
-
-      // roscpp's interface for creating publishers, subscribers, etc....
-      ros::NodeHandle private_nh("~/" + name); 
-
-
-      // create a local and global publisher
-      g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1); // returns a publisher allowing you to publish a message ona topic
-                                                                            // <message type>(topic, queue size, latch=when new subscribers, get last message)
-      // cout << "@@@@@----g_plan_pub_: " << g_plan_pub_.getTopic() << endl;
-
+      ros::NodeHandle private_nh("~/" + name);
+      g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
-      // cout << "@@@@@----l_plan_pub_: " << l_plan_pub_.getTopic() << endl;
-
-      // assign some names to our tf and costmap pointers
-      tf_ = tf; // tf::TransformListener* tf
-      // cout << "@@@@@----tf_: " << tf_->allFramesAsDot() << endl;
-      costmap_ros_ = costmap_ros; // costmap_2d::Costmap2DROS* costmap_ros
-      // cout << "@@@@@----costmap_ros_: " << costmap_ros_->getGlobalFrameID() << endl;
-      costmap_ros_->getRobotPose(current_pose_);  // bool  getRobotPose (tf::Stamped< tf::Pose > &global_pose) const
-                                                  // std::array<int, 5> n; -- simple declaration of an array, n is standard array of type int and length 5
-                                                  // std::vector<int> marks; -- declaration of a vector named marks and type int
-                                                  // tf::Stamped< tf::Pose > -- declaration of tf::Stamped of type tf::Pose
-                                                  // template class
-      // cout << "@@@@@----current_pose_.frame_id_: " << current_pose_.frame_id_ << endl;
-      // cout << "@@@@@----current_pose_.stamp_: " << current_pose_.stamp_ << endl;
-      // cout << "@@@@@----costmap_ros_->getRobotPose(current_pose_): " << costmap_ros_->getRobotPose(current_pose_) << endl;
+      tf_ = tf;
+      costmap_ros_ = costmap_ros;
+      costmap_ros_->getRobotPose(current_pose_);
 
       // make sure to update the costmap we'll use for this cycle
-      costmap_2d::Costmap2D* costmap = costmap_ros_->getCostmap(); // give a name to the most recent costmap
+      costmap_2d::Costmap2D* costmap = costmap_ros_->getCostmap();
 
-      // initialise planner
-      planner_util_.initialize(tf, costmap, costmap_ros_->getGlobalFrameID()); // void  initialize (tf::TransformListener *tf, costmap_2d::Costmap2D *costmap, std::string global_frame)
+      planner_util_.initialize(tf, costmap, costmap_ros_->getGlobalFrameID());
 
       //create the actual planner that we'll use.. it'll configure itself from the parameter server
-        // creates a pointer to   URSAIPlanner::URSAIPlanner(std::string name, base_local_planner::LocalPlannerUtil *planner_util) from ursai_planner.cpp
-        // this function uses the name and config file &planner_util_ to intialise
-        // member functions initialised are 
-                // planner_util_(planner_util), // need to check header file to see the definition of all these variables
-                // obstacle_costs_(planner_util->getCostmap()), -- returns scoreTrajectory when given a trajectory
-                // path_costs_(planner_util->getCostmap()),  -- from MapGridCostFunction, returns a bunch of things when costmap received: cell costs, obstacele costs...
-                // goal_costs_(planner_util->getCostmap(), 0.0, 0.0, true), -- also from MapGridCostFunction
-                // goal_front_costs_(planner_util->getCostmap(), 0.0, 0.0, true), -- also from MapGridCostFunction
-                // alignment_costs_(planner_util->getCostmap()) -- also from MapGridCostFunction
-      dp_ = boost::shared_ptr<URSAIPlanner>(new URSAIPlanner(name, &planner_util_));
+      dp_ = boost::shared_ptr<DWAPlanner>(new DWAPlanner(name, &planner_util_));
 
       if( private_nh.getParam( "odom_topic", odom_topic_ ))
       {
@@ -164,8 +119,8 @@ namespace ursai_local_planner {
       
       initialized_ = true;
 
-      dsrv_ = new dynamic_reconfigure::Server<URSAIPlannerConfig>(private_nh);
-      dynamic_reconfigure::Server<URSAIPlannerConfig>::CallbackType cb = boost::bind(&URSAIPlannerROS::reconfigureCB, this, _1, _2);
+      dsrv_ = new dynamic_reconfigure::Server<DWAPlannerConfig>(private_nh);
+      dynamic_reconfigure::Server<DWAPlannerConfig>::CallbackType cb = boost::bind(&DWAPlannerROS::reconfigureCB, this, _1, _2);
       dsrv_->setCallback(cb);
     }
     else{
@@ -173,9 +128,7 @@ namespace ursai_local_planner {
     }
   }
   
-  bool URSAIPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan) {
-      // cout << "@@@@@URSAIPlannerROS::setPlan" << endl;
-    
+  bool DWAPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan) {
     if (! isInitialized()) {
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
       return false;
@@ -187,10 +140,7 @@ namespace ursai_local_planner {
     return dp_->setPlan(orig_global_plan);
   }
 
-  bool URSAIPlannerROS::isGoalReached() {
-      // cout << "@@@@@URSAIPlannerROS::isGoalReached" << endl;
-      // cout << "@@@@@----URSAIPlannerROS::isGoalReached(return) = " << latchedStopRotateController_.isGoalReached(&planner_util_, odom_helper_, current_pose_) << endl;
-
+  bool DWAPlannerROS::isGoalReached() {
     if (! isInitialized()) {
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
       return false;
@@ -208,38 +158,23 @@ namespace ursai_local_planner {
     }
   }
 
-  void URSAIPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-      // cout << "@@@@@URSAIPlannerROS::publishLocalPlan" << endl;
-      // for(unsigned int i=0; i < path.size(); i++){
-        // cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
-      // }
+  void DWAPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, l_plan_pub_);
-    // Publish a plan for visualization purposes.
-            // path  The plan to publish
-            // l_plan_pub_ is the thing we defined above - just means the local_plan topic (/move_base/URSAIPlannerROS/local_plan)
-            // basically publishes the path on the local plan topic which is of message type >> nav_msgs/Path Message
-            // for visualisation purposes
   }
 
 
-  void URSAIPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-      // cout << "@@@@@URSAIPlannerROS::publishGlobalPlan" << endl;
-      // for(unsigned int i=0; i < path.size(); i++){
-        // cout << "@@@@@----path[" << i << "] = " << path[i] << endl;
-      // }
+  void DWAPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, g_plan_pub_);
   }
 
-  URSAIPlannerROS::~URSAIPlannerROS(){
-      // cout << "@@@@@URSAIPlannerROS::~URSAIPlannerROS" << endl;
+  DWAPlannerROS::~DWAPlannerROS(){
     //make sure to clean things up
     delete dsrv_;
   }
 
 
 
-  bool URSAIPlannerROS::ursaiComputeVelocityCommands(tf::Stamped<tf::Pose> &global_pose, geometry_msgs::Twist& cmd_vel) {
-      // cout << "@@@@@URSAIPlannerROS::ursaiComputeVelocityCommands" << endl;
+  bool DWAPlannerROS::dwaComputeVelocityCommands(tf::Stamped<tf::Pose> &global_pose, geometry_msgs::Twist& cmd_vel) {
     // dynamic window sampling approach to get useful velocity commands
     if(! isInitialized()){
       ROS_ERROR("This planner has not been initialized, please call initialize() before using this planner");
@@ -252,7 +187,7 @@ namespace ursai_local_planner {
     /* For timing uncomment
     struct timeval start, end;
     double start_t, end_t, t_diff;
-    gettimeofday(&start, NULL);+
+    gettimeofday(&start, NULL);
     */
 
     //compute what trajectory to drive along
@@ -260,9 +195,6 @@ namespace ursai_local_planner {
     drive_cmds.frame_id_ = costmap_ros_->getBaseFrameID();
     
     // call with updated footprint
-      // I feel like this is pretty important
-      // In the tradish implementation of the local planner cmd_vel topic would be published after best path is found
-      // not sure how cmd_vel gets published though
     base_local_planner::Trajectory path = dp_->findBestPath(global_pose, robot_vel, drive_cmds, costmap_ros_->getRobotFootprint());
     //ROS_ERROR("Best: %.2f, %.2f, %.2f, %.2f", path.xv_, path.yv_, path.thetav_, path.cost_);
 
@@ -282,14 +214,14 @@ namespace ursai_local_planner {
     //if we cannot move... tell someone
     std::vector<geometry_msgs::PoseStamped> local_plan;
     if(path.cost_ < 0) {
-      ROS_DEBUG_NAMED("ursai_local_planner",
-          "The ursai local planner failed to find a valid plan, cost functions discarded all candidates. This can mean there is an obstacle too close to the robot.");
+      ROS_DEBUG_NAMED("dwa_local_planner",
+          "The dwa local planner failed to find a valid plan, cost functions discarded all candidates. This can mean there is an obstacle too close to the robot.");
       local_plan.clear();
       publishLocalPlan(local_plan);
       return false;
     }
 
-    ROS_DEBUG_NAMED("ursai_local_planner", "A valid velocity command of (%.2f, %.2f, %.2f) was found for this cycle.", 
+    ROS_DEBUG_NAMED("dwa_local_planner", "A valid velocity command of (%.2f, %.2f, %.2f) was found for this cycle.", 
                     cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z);
 
     // Fill out the local plan
@@ -317,9 +249,8 @@ namespace ursai_local_planner {
 
 
 
-  bool URSAIPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
-      // cout << "@@@@@URSAIPlannerROS::computeVelocityCommands" << endl;
-    // dispatches to either ursai sampling control or stop and rotate control, depending on whether we have been close enough to goal
+  bool DWAPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
+    // dispatches to either dwa sampling control or stop and rotate control, depending on whether we have been close enough to goal
     if ( ! costmap_ros_->getRobotPose(current_pose_)) {
       ROS_ERROR("Could not get robot pose");
       return false;
@@ -332,12 +263,12 @@ namespace ursai_local_planner {
 
     //if the global plan passed in is empty... we won't do anything
     if(transformed_plan.empty()) {
-      ROS_WARN_NAMED("ursai_local_planner", "Received an empty transformed plan.");
+      ROS_WARN_NAMED("dwa_local_planner", "Received an empty transformed plan.");
       return false;
     }
-    ROS_DEBUG_NAMED("ursai_local_planner", "Received a transformed plan with %zu points.", transformed_plan.size());
+    ROS_DEBUG_NAMED("dwa_local_planner", "Received a transformed plan with %zu points.", transformed_plan.size());
 
-    // update plan in ursai_planner even if we just stop and rotate, to allow checkTrajectory
+    // update plan in dwa_planner even if we just stop and rotate, to allow checkTrajectory
     dp_->updatePlanAndLocalCosts(current_pose_, transformed_plan);
 
     if (latchedStopRotateController_.isPositionReached(&planner_util_, current_pose_)) {
@@ -354,13 +285,13 @@ namespace ursai_local_planner {
           &planner_util_,
           odom_helper_,
           current_pose_,
-          boost::bind(&URSAIPlanner::checkTrajectory, dp_, _1, _2, _3));
+          boost::bind(&DWAPlanner::checkTrajectory, dp_, _1, _2, _3));
     } else {
-      bool isOk = ursaiComputeVelocityCommands(current_pose_, cmd_vel);
+      bool isOk = dwaComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {
         publishGlobalPlan(transformed_plan);
       } else {
-        ROS_WARN_NAMED("ursai_local_planner", "URSAI planner failed to produce path.");
+        ROS_WARN_NAMED("dwa_local_planner", "DWA planner failed to produce path.");
         std::vector<geometry_msgs::PoseStamped> empty_plan;
         publishGlobalPlan(empty_plan);
       }

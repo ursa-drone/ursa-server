@@ -1,5 +1,5 @@
 <package>
-    <name>ursai_local_planner</name>
+    <name>dwa_local_planner</name>
     <version>1.14.0</version>
     <description>
 
@@ -18,7 +18,7 @@
     <maintainer email="davidvlu@gmail.com">David V. Lu!!</maintainer>
     <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
     <license>BSD</license>
-    <url>http://wiki.ros.org/ursai_local_planner</url>
+    <url>http://wiki.ros.org/dwa_local_planner</url>
 
     <buildtool_depend>catkin</buildtool_depend>
 
