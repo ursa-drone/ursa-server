@@ -32,3 +32,4 @@ URSAIPlannerROS:
   oscillation_reset_dist: 0.05
 
   publish_cost_grid_pc: True
+  controller_frequency: 20.0

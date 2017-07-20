@@ -30,6 +30,9 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
     <!-- SCRIPTS from URSA package -->
+  <!-- <node name="talker" pkg="ursa" type="talker.py" output="screen" required="true"/> -->
+  <!-- <node name="listener" pkg="ursa" type="listener.py" output="screen" required="true"/> -->
+  <node name="get_local_plan_setpoint" pkg="ursa" type="get_local_plan_setpoint.py" output="screen" required="true"/>
   <node name="set_drone_link" pkg="ursa" type="set_drone_link.py" output="screen" required="true"/>
   <node name="set_drone_height" pkg="ursa" type="set_drone_height.py" output="screen" required="true"/>
   <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true"/>

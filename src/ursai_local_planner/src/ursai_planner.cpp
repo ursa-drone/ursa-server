@@ -301,9 +301,9 @@ namespace ursai_local_planner {
       tf::Stamped<tf::Pose> global_vel,
       tf::Stamped<tf::Pose>& drive_velocities,
       std::vector<geometry_msgs::Point> footprint_spec) {
-      cout << "@@@@@----URSAIPlannerROS::findBestPath.global_pose.frame_id_ = " << global_pose.frame_id_ << endl;
+      // computing << "@@@@@----URSAIPlannerROS::findBestPath.global_pose.frame_id_ = " << global_pose.frame_id_ << endl;
       // for(unsigned int i=0; i < footprint_spec.size(); i++){
-      //   cout << "@@@@@----footprint_spec[" << i << "] = " << footprint_spec[i] << endl;
+        // computing << "@@@@@----footprint_spec[" << i << "] = " << footprint_spec[i] << endl;
       // }
 
     obstacle_costs_.setFootprint(footprint_spec); // set private attribute footprint_spec_
@@ -316,7 +316,7 @@ namespace ursai_local_planner {
         // defines a vector called pos
         // global pose is just defined in our ROS bit when costmap_ros_->getRobotPose(current_pose_); -- so basically the current pose
         Eigen::Vector3f pos(global_pose.getOrigin().getX(), global_pose.getOrigin().getY(), tf::getYaw(global_pose.getRotation())); 
-        cout << "@@@@@----URSAIPlannerROS::findBestPath Eigen::Vector3f pos = " << endl << pos << endl;
+        // computing << "@@@@@----URSAIPlannerROS::findBestPath Eigen::Vector3f pos = " << endl << pos << endl;
 
         // get robot velocity from the odometry
         // global_vel just comes from the odometry data
@@ -329,21 +329,21 @@ namespace ursai_local_planner {
                         // setOdomTopic( odom_topic );
                         // }
         Eigen::Vector3f vel(global_vel.getOrigin().getX(), global_vel.getOrigin().getY(), tf::getYaw(global_vel.getRotation()));
-        cout << "@@@@@----URSAIPlannerROS::findBestPath Eigen::Vector3f vel = " << endl << vel << endl;
+        // computing << "@@@@@----URSAIPlannerROS::findBestPath Eigen::Vector3f vel = " << endl << vel << endl;
 
         // get the last point of the global_plan_
             // std::vector<geometry_msgs::PoseStamped> global_plan_;    -- is updated when you set a nav goal in rviz
             // for(unsigned int i=0; i < global_plan_.size(); i++){     -- is a vector of points making up the nav goal
-            //   cout << "@@@@@----global_plan_[" << i << "] = " << global_plan_[i] << endl;
+              // computing << "@@@@@----global_plan_[" << i << "] = " << global_plan_[i] << endl;
             // }
         geometry_msgs::PoseStamped goal_pose = global_plan_.back();
-        cout << "@@@@@----URSAIPlannerROS::findBestPath goal_pose = " << endl << goal_pose << endl;  // basically the last point of the global plan
+        // computing << "@@@@@----URSAIPlannerROS::findBestPath goal_pose = " << endl << goal_pose << endl;  // basically the last point of the global plan
 
         Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf::getYaw(goal_pose.pose.orientation));  // create a vector of points for the goal
-        cout << "@@@@@----URSAIPlannerROS::findBestPath goal = " << endl << goal << endl;
+        // computing << "@@@@@----URSAIPlannerROS::findBestPath goal = " << endl << goal << endl;
 
         base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits(); // a whole list of limits that are defined in teh config file
-        cout << "@@@@@----URSAIPlannerROS::findBestPath limits.acc_lim_x = " << limits.acc_lim_x << endl;
+        // computing << "@@@@@----URSAIPlannerROS::findBestPath limits.acc_lim_x = " << limits.acc_lim_x << endl;
 
     // prepare cost functions and generators for this run
         // base_local_planner::SimpleTrajectoryGenerator generator_;
@@ -362,47 +362,10 @@ namespace ursai_local_planner {
     // For each generated trajectory calls critics.  costs are either a negative value returned by critics or the sum of all critics values
     // sets trajectory parameter to the first trajectory with minimal non-negative costs
             // base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner
-            cout << "@@@@@----URSAIPlannerROS::findBestPath result_traj_ = " << result_traj_.cost_ << endl;
-            cout << "@@@@@----URSAIPlannerROS::findBestPath all_explored.size() = " << all_explored.size() << endl;
+            // computing << "@@@@@----URSAIPlannerROS::findBestPath result_traj_ = " << result_traj_.cost_ << endl;
+            // computing << "@@@@@----URSAIPlannerROS::findBestPath all_explored.size() = " << all_explored.size() << endl;
     scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
-    // publish_traj_pc_ = 1;
-    cout << "@@@@@----URSAIPlannerROS::findBestPath publish_traj_pc_ = " << publish_traj_pc_ << endl;
-    if(publish_traj_pc_) // some parameter on the parameter server, gues pc = point cloud
-    {
-        base_local_planner::MapGridCostPoint pt; // basically just a structure for holding a bunch of floats >> goal_cost, occ_cost, path_cost, total_cost, x, y, z
-        traj_cloud_->points.clear();
-        traj_cloud_->width = 0;
-        traj_cloud_->height = 0;
-        std_msgs::Header header;
-        pcl_conversions::fromPCL(traj_cloud_->header, header);
-        header.stamp = ros::Time::now();
-        traj_cloud_->header = pcl_conversions::toPCL(header);
-        for(std::vector<base_local_planner::Trajectory>::iterator t=all_explored.begin(); t != all_explored.end(); ++t)
-        {
-            if(t->cost_<0)
-                continue;
-            // Fill out the plan
-            for(unsigned int i = 0; i < t->getPointsSize(); ++i) {
-                double p_x, p_y, p_th;
-                t->getPoint(i, p_x, p_y, p_th);
-                pt.x=p_x;
-                pt.y=p_y;
-                pt.z=0;
-                pt.path_cost=p_th;
-                pt.total_cost=t->cost_;
-                traj_cloud_->push_back(pt);
-            }
-        }
-        traj_cloud_pub_.publish(*traj_cloud_);
-        cout << "@@@@@----URSAIPlannerROS::findBestPath *traj_cloud_ = " << *traj_cloud_ << endl;
-    }
-
-    // verbose publishing of point clouds
-    if (publish_cost_grid_pc_) {
-      //we'll publish the visualization of the costs to rviz before returning our best trajectory
-      map_viz_.publishCostCloud(planner_util_->getCostmap());
-    }
 
     // debrief stateful scoring functions
     oscillation_costs_.updateOscillationFlags(pos, &result_traj_, planner_util_->getCurrentLimits().min_trans_vel);

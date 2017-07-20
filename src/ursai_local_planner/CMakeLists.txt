@@ -49,7 +49,7 @@ add_executable(talker src/talker.cpp)
 target_link_libraries(talker ${catkin_LIBRARIES})
 add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 
-add_library(ursai_local_planner src/ursai_planner.cpp src/ursai_planner_ros.cpp)
+add_library(ursai_local_planner src/ursai_planner.cpp src/ursai_planner_ros.cpp src/ursai_traj_gen.cpp)
 target_link_libraries(ursai_local_planner ${catkin_LIBRARIES})
 add_dependencies(ursai_local_planner ursai_local_planner_gencfg)
 add_dependencies(ursai_local_planner nav_msgs_generate_messages_cpp)

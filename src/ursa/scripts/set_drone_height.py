@@ -92,20 +92,22 @@ def set_drone_height_setpoint():
     set_mode(0,"OFFBOARD")
     arm(True)
 
-    robot_vel = geometry_msgs.msg.Twist()
-    # robot_vel.header.frame_id = "map"
-    robot_vel.linear.x = 0
-    robot_vel.linear.y = 0
-    robot_vel.linear.z = 2
-    robot_vel.angular.x = 0
-    robot_vel.angular.y = 0
-    robot_vel.angular.z = 2
+    # robot_vel = geometry_msgs.msg.Twist()
+    # # robot_vel.header.frame_id = "map"
+    # robot_vel.linear.x = 0
+    # robot_vel.linear.y = 0
+    # robot_vel.linear.z = 2
+    # robot_vel.angular.x = 0
+    # robot_vel.angular.y = 0
+    # robot_vel.angular.z = 2
 
-    while not rospy.is_shutdown():
-        # robot_vel.header.stamp = rospy.Time.now()
-        vel.publish(robot_vel)
-        # br.sendTransform(setpoint)
-        r.sleep()
+    # while not rospy.is_shutdown():
+    #     # robot_vel.header.stamp = rospy.Time.now()
+    #     # vel.publish(robot_vel)
+    #     br.sendTransform(setpoint)
+    #     r.sleep()
+
+    rospy.spin()
 
 if __name__ == '__main__':
     rospy.init_node("set_drone_height", anonymous=True)
