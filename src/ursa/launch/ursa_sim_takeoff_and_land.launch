@@ -1,0 +1,57 @@
+<!-- Copyright 2017 - LAOSAAC -->
+
+<launch>
+    <!-- Command line arguments -->
+
+    <!-- Launch robot description file and publisher -->
+    <param name="/use_sim_time" value="true" />
+    <param name="robot_description" textfile="$(find ursa)/urdf/ursa.urdf" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+    <!-- Launch MAVROS -->
+    <arg name="ns" default="/" />
+    <arg name="fcu_url" default="udp://:14540@localhost:14557" />
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="pluginlists_yaml" default="$(find mavros)/launch/px4_pluginlists.yaml" />
+    <arg name="config_yaml" default="$(find ursa)/config/mavros/px4_config_sim.yaml" />
+
+    <group ns="$(arg ns)">
+      <include file="$(find mavros)/launch/node.launch">
+          <arg name="pluginlists_yaml" value="$(arg pluginlists_yaml)" />
+          <arg name="config_yaml" value="$(arg config_yaml)" />
+          <arg name="fcu_url" value="$(arg fcu_url)" />
+          <arg name="gcs_url" value="$(arg gcs_url)" />
+          <arg name="tgt_system" value="$(arg tgt_system)" />
+          <arg name="tgt_component" value="$(arg tgt_component)" />
+      </include>
+    </group>
+
+    <!-- Set the altitude of drone -->
+    <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true">
+        <remap from="/mavros/distance_sensor/sonar_sensor" to="range"/>
+    </node>
+
+    <!-- Replace nan data with MAX_RANGE + 1 -->
+    <!-- <node name="scan_filtered_nans" pkg="ursa" type="scan_filtered_nans.py" respawn="true" /> -->
+
+    <!-- Filter IMU data based on timestamps and pref clean data -->
+    <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
+
+    <!-- Control flight -->
+    <node name="ursa_controller" pkg="ursa" type="controller_with_arrow_keys.py" output="screen" required="true"/>
+
+    <!-- Start cartographer -->
+  <node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find ursa)/config
+          -configuration_basename ursa_sim.lua"
+      output="screen">
+    <remap from="scan" to="/laser/scan" />
+    <remap from="imu" to="filtered_imu" />
+  </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" required="true" args="-d $(find ursa)/config/simulation.rviz" />
+</launch>
+
