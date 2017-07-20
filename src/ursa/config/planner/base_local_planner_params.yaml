@@ -1,7 +1,7 @@
 #base_local_planner: ursa_local_planner/UrsaPlannerROS
-base_local_planner: ursai_local_planner/URSAIPlannerROS
+base_local_planner: ursa_local_planner/UrsaPlannerROS
 
-URSAIPlannerROS:
+URSAPlannerROS:
   # set velocity limits
   max_vel_x: 10
   min_vel_x: 0

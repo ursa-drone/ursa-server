@@ -35,13 +35,15 @@
  * Author: TKruse
  *********************************************************************/
 #include <stdio.h>
-
+#include <iostream>
 #include <ursai_local_planner/ursai_traj_gen.h>
 // #include <base_local_planner/simple_trajectory_generator.h>
 
 #include <cmath>
 
 #include <base_local_planner/velocity_iterator.h>
+
+using namespace std;
 
 namespace ursai_local_planner {
 
@@ -68,6 +70,9 @@ void URSAITrajectoryGenerator::initialise(
     const Eigen::Vector3f& vsamples,
     bool discretize_by_time) {
     printf("!!!!!!!!!!URSAITrajectoryGenerator::initialise2\n");
+    cout << "!!!!!!!!!!----------" << pos << endl;
+
+
   /*
    * We actually generate all velocity sample vectors here, from which to generate trajectories later on
    */
