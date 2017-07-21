@@ -217,6 +217,8 @@ namespace dwa_local_planner {
       Eigen::Vector3f pos,
       Eigen::Vector3f vel,
       Eigen::Vector3f vel_samples){
+    cout << "@@@@@@@@@@ DWAPlanner::checkTrajectory @@@@@" << endl;
+
     oscillation_costs_.resetOscillationFlags();
     base_local_planner::Trajectory traj;
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
@@ -229,7 +231,7 @@ namespace dwa_local_planner {
         vsamples_);
     generator_.generateTrajectory(pos, vel, vel_samples, traj);
     double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
-    //if the trajectory is a legal one... the check passes
+        //if the trajectory is a legal one... the check passes
     if(cost >= 0) {
       return true;
     }
@@ -309,13 +311,7 @@ namespace dwa_local_planner {
     Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf::getYaw(goal_pose.pose.orientation));
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
-    cout << "@@@@@@@@@@ global_plan_ @@@@@" << endl;
-    for (int i=0; i<global_plan_.size(); i++){
-        std::cout << global_plan_[i].pose.position.x << "----"
-                  << global_plan_[i].pose.position.y << "----"
-                  << global_plan_[i].pose.position.z
-                  << std::endl;
-    }
+
     cout << "@@@@@@@@@@ global_plan_[-1] @@@@@" << global_plan_.back() << endl;
 
     // prepare cost functions and generators for this run
@@ -328,7 +324,9 @@ namespace dwa_local_planner {
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
-    scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
+    bool a = scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
+    cout << "@@@@@@@@@@ scored_sampling_planner_ @@@@@" << a << endl;
+
 
     if(publish_traj_pc_)
     {

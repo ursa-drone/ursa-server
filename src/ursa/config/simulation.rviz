@@ -3,7 +3,8 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /visualize_traj_gen1
       Splitter Ratio: 0.600670993
     Tree Height: 726
   - Class: rviz/Selection
@@ -149,7 +150,7 @@ Visualization Manager:
       Submaps:
         All Enabled: true
         Trajectory 0:
-          0.75: true
+          0.7: true
       Topic: /submap_list
       Tracking frame: base_link
       Unreliable: false
@@ -303,6 +304,29 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 0; 0; 255
+      Enabled: true
+      Head Diameter: 0.300000012
+      Head Length: 0.200000003
+      Length: 0.300000012
+      Line Style: Lines
+      Line Width: 0.0299999993
+      Name: visualize_traj_gen
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Radius: 0.0299999993
+      Shaft Diameter: 0.100000001
+      Shaft Length: 0.100000001
+      Topic: /move_base/visualize_traj_gen
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 100; 100; 100
@@ -327,24 +351,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 11.4693575
+      Distance: 9.22676659
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 3.7305522
-        Y: -0.963167191
-        Z: -6.19888306e-06
+        X: 0.129172921
+        Y: -0.296672821
+        Z: 4.29153442e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.68039912
+      Pitch: 0.790398955
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 5.15355825
+      Yaw: 4.73855257
     Saved: ~
 Window Geometry:
   Displays:

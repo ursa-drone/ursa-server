@@ -59,6 +59,7 @@
 #include <base_local_planner/map_grid_cost_function.h>
 #include <base_local_planner/obstacle_cost_function.h>
 #include <base_local_planner/simple_scored_sampling_planner.h>
+#include <dwa_local_planner/my_simple_trajectory_generator.h>
 
 #include <nav_msgs/Path.h>
 

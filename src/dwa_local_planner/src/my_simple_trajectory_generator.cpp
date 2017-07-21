@@ -34,14 +34,18 @@
  *
  * Author: TKruse
  *********************************************************************/
-
-#include <dwa_local_planner/my_simple_trajectory_generator.h>
+// my additions
 #include <iostream>
 using namespace std;
+#include <nav_msgs/Path.h>
+#include <ros/ros.h>
+#include <std_msgs/String.h>
 
+#include <dwa_local_planner/my_simple_trajectory_generator.h>
 #include <cmath>
-
 #include <base_local_planner/velocity_iterator.h>
+#include <base_local_planner/goal_functions.h>
+
 
 namespace base_local_planner {
 
@@ -80,6 +84,10 @@ void SimpleTrajectoryGenerator::initialise(
     vel_ = vel;
     limits_ = limits;
 
+    // my visualising stuff
+    ros::NodeHandle private_nh("~/");
+    visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
+    traj_gen_paths_.clear();
 
     next_sample_index_ = 0;  cout << "!!!!--next_sample_index_: " << next_sample_index_ << endl;
     sample_params_.clear();  cout << "!!!!--sample_params_.size(): " << sample_params_.size() << endl;
@@ -155,9 +163,61 @@ bool SimpleTrajectoryGenerator::generateTrajectory(
 
     traj.resetPoints();
     traj.addPoint(sample_target_vel[0], sample_target_vel[1], sample_target_vel[2]);
+    VisualiseTrajectoryGenerator(traj);
 
   cout << "!!!!--num_steps " << sample_target_vel << endl;
   return 1; // true if trajectory has at least one point
+}
+
+void SimpleTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){
+    cout << "@@@@@@@@@@ VisualiseTrajectoryGenerator @@@@@" << endl;
+    cout << "!!!!--traj.getPointSize(): " << traj.getPointsSize() << endl;
+    double x; double y; double z;
+    for(unsigned int i=0; i<traj.getPointsSize(); i++){
+        geometry_msgs::PoseStamped pose;
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "map";
+        traj_gen_paths_.push_back(pose);
+
+        traj.getPoint(i, x, y, z);
+
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "map";
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        pose.pose.position.z = z;
+
+        traj_gen_paths_.push_back(pose);
+        cout << "!!!!--traj.getPoint[" << i << "]: " << x << ", " << y << ", " << z << endl;
+        cout << "!!!!--pose.pose.position.x = " << pose.pose.position.x;
+        cout << "!!!!--pose.pose.position.y = " << pose.pose.position.y;
+        cout << "!!!!--pose.pose.position.z = " << pose.pose.position.z;
+    }
+    cout << "@@@@@@@@@@ traj_gen_paths_ @@@@@" << endl;
+    for(unsigned int j=0; j<traj_gen_paths_.size(); j++){
+        cout << traj_gen_paths_[j].pose.position.x << endl;
+        cout << traj_gen_paths_[j].pose.position.y << endl;
+        cout << traj_gen_paths_[j].pose.position.z << endl;
+    }
+
+    base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
+
+    // // ###########################################
+    // // Setup trajectory generator visualizer node
+    // // ###########################################
+    // int argc = 0; char **argv;
+    // ros::init(argc, argv, "trajectory_generator_paths");
+    // ros::NodeHandle n;
+    // ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
+    // ros::Rate loop_rate(10);
+    // std_msgs::String msg;
+    // // ###########################################
+    // msg.data = "published message";
+    // // while (ros::ok()){
+    //     chatter_pub.publish(msg);
+    //     // ros::spinOnce();
+    //     // loop_rate.sleep();
+    // // }
 }
 
 Eigen::Vector3f SimpleTrajectoryGenerator::computeNewPositions(const Eigen::Vector3f& pos,
@@ -168,6 +228,8 @@ Eigen::Vector3f SimpleTrajectoryGenerator::computeNewPositions(const Eigen::Vect
   new_pos[2] = pos[2] + vel[2] * dt;
   return new_pos;
 }
+
+
 
 /**
  * cheange vel using acceleration limits to converge towards sample_target-vel

@@ -35,13 +35,14 @@
  * Author: TKruse
  *********************************************************************/
 
-#ifndef SIMPLE_TRAJECTORY_GENERATOR_H_
-#define SIMPLE_TRAJECTORY_GENERATOR_H_
+#ifndef MY_SIMPLE_TRAJECTORY_GENERATOR_H_
+#define MY_SIMPLE_TRAJECTORY_GENERATOR_H_
 
 #include <geometry_msgs/PoseStamped.h>
 #include <base_local_planner/trajectory_sample_generator.h>
 #include <base_local_planner/local_planner_limits.h>
 #include <Eigen/Core>
+
 
 namespace base_local_planner {
 
@@ -139,6 +140,9 @@ public:
         Eigen::Vector3f sample_target_vel,
         base_local_planner::Trajectory& traj);
 
+  void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
+
+
 protected:
 
   unsigned int next_sample_index_;
@@ -155,7 +159,12 @@ protected:
   double sim_time_, sim_granularity_, angular_sim_granularity_;
   bool use_dwa_;
   double sim_period_; // only for dwa
+
+  // mystuff
+  ros::Publisher visualize_traj_gen_pub_;
+  std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
 };
 
 } /* namespace base_local_planner */
 #endif /* SIMPLE_TRAJECTORY_GENERATOR_H_ */
+
