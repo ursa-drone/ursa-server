@@ -48,13 +48,13 @@
 namespace ursa_local_planner {
 
 void UrsaTrajectoryGenerator::initialise(
-    const Eigen::Vector3f& pos,
-    const Eigen::Vector3f& vel,
-    std::vector<geometry_msgs::PoseStamped> global_plan,
-    base_local_planner::LocalPlannerLimits* limits,
-    const Eigen::Vector3f& vsamples,
-    std::vector<Eigen::Vector3f> additional_samples,
-    bool discretize_by_time) {
+  const Eigen::Vector3f& pos,
+  const Eigen::Vector3f& vel,
+  std::vector<geometry_msgs::PoseStamped> global_plan,
+  base_local_planner::LocalPlannerLimits* limits,
+  const Eigen::Vector3f& vsamples,
+  std::vector<Eigen::Vector3f> additional_samples,
+  bool discretize_by_time) {
   initialise(pos, vel, global_plan, limits, vsamples, discretize_by_time);
   // add static samples if any
   sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
@@ -62,15 +62,20 @@ void UrsaTrajectoryGenerator::initialise(
 
 
 void UrsaTrajectoryGenerator::initialise(
-    const Eigen::Vector3f& pos,
-    const Eigen::Vector3f& vel,
-    std::vector<geometry_msgs::PoseStamped> global_plan,
-    base_local_planner::LocalPlannerLimits* limits,
-    const Eigen::Vector3f& vsamples,
-    bool discretize_by_time) {
+  const Eigen::Vector3f& pos,
+  const Eigen::Vector3f& vel,
+  std::vector<geometry_msgs::PoseStamped> global_plan,
+  base_local_planner::LocalPlannerLimits* limits,
+  const Eigen::Vector3f& vsamples,
+  bool discretize_by_time) {
   /*
    * We actually generate all path sample vectors here, from which to generate trajectories later on
    */
+
+  // Setup node handler and publishers
+  ros::NodeHandle private_nh("~/");
+  visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
+  traj_gen_paths_.clear();
 
   // Clear sample points
   sample_params_.clear();
@@ -88,25 +93,25 @@ void UrsaTrajectoryGenerator::initialise(
   // Iterate over the remaining points and add if they are seperated by at least 10cm (make sure to add the last point)
   std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
   for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
-    geometry_msgs::PoseStamped& w = *poseIt;
-    x_diff = sample_params_.back()[0]-w.pose.position.x;
-    y_diff = sample_params_.back()[1]-w.pose.position.y;
-    distance_sq = x_diff*x_diff + y_diff*y_diff;
-    if (distance_sq>=0.01 || poseIt == global_plan.end()){
-      test_point[0]=w.pose.position.x;
-      test_point[1]=w.pose.position.y;
-      test_point[2]=tf::getYaw(w.pose.orientation);
-      sample_params_.push_back(test_point);
-    }
+  geometry_msgs::PoseStamped& w = *poseIt;
+  x_diff = sample_params_.back()[0]-w.pose.position.x;
+  y_diff = sample_params_.back()[1]-w.pose.position.y;
+  distance_sq = x_diff*x_diff + y_diff*y_diff;
+  if (distance_sq>=0.01 || poseIt == global_plan.end()){
+    test_point[0]=w.pose.position.x;
+    test_point[1]=w.pose.position.y;
+    test_point[2]=tf::getYaw(w.pose.orientation);
+    sample_params_.push_back(test_point);
+  }
   }
 }
 
 void UrsaTrajectoryGenerator::setParameters(
-    double sim_time,
-    double sim_granularity,
-    double angular_sim_granularity,
-    bool use_dwa,
-    double sim_period) {
+  double sim_time,
+  double sim_granularity,
+  double angular_sim_granularity,
+  bool use_dwa,
+  double sim_period) {
   sim_time_ = sim_time;
   sim_granularity_ = sim_granularity;
   angular_sim_granularity_ = angular_sim_granularity;
@@ -128,13 +133,13 @@ bool UrsaTrajectoryGenerator::hasMoreTrajectories() {
 bool UrsaTrajectoryGenerator::nextTrajectory(base_local_planner::Trajectory &comp_traj) {
   bool result = false;
   if (hasMoreTrajectories()) {
-    if (generateTrajectory(
-        pos_,
-        vel_,
-        sample_params_[next_sample_index_],
-        comp_traj)) {
-      result = true;
-    }
+  if (generateTrajectory(
+    pos_,
+    vel_,
+    sample_params_[next_sample_index_],
+    comp_traj)) {
+    result = true;
+  }
   }
   next_sample_index_++;
   return result;
@@ -146,10 +151,10 @@ bool UrsaTrajectoryGenerator::nextTrajectory(base_local_planner::Trajectory &com
  * @param sample_target point on the global plan to generate trajectory
  */
 bool UrsaTrajectoryGenerator::generateTrajectory(
-      Eigen::Vector3f pos,
-      Eigen::Vector3f vel,
-      Eigen::Vector3f sample_target,
-      base_local_planner::Trajectory& traj) {
+    Eigen::Vector3f pos,
+    Eigen::Vector3f vel,
+    Eigen::Vector3f sample_target,
+    base_local_planner::Trajectory& traj) {
   double eps = 1e-4;
   //traj.cost_   = -1.0; // placed here in case we return early
   //trajectory might be reused so we'll make sure to reset it
@@ -167,41 +172,34 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
   //simulate the trajectory
   for (int i = 0; i < num_steps; ++i) {
 
-    //add the point to the trajectory
-    traj.addPoint(pos[0], pos[1], sample_target[2]);
+  //add the point to the trajectory
+  traj.addPoint(pos[0], pos[1], sample_target[2]);
 
-    pos[0]+=x_diff/num_steps;
-    pos[1]+=y_diff/num_steps;
+  pos[0]+=x_diff/num_steps;
+  pos[1]+=y_diff/num_steps;
 
   } // end for simulation steps
-
+  VisualiseTrajectoryGenerator(traj);
 
   return num_steps > 0; // true if trajectory has at least one point
 }
 
-Eigen::Vector3f UrsaTrajectoryGenerator::computeNewPositions(const Eigen::Vector3f& pos,
-    const Eigen::Vector3f& vel, double dt) {
-  Eigen::Vector3f new_pos = Eigen::Vector3f::Zero();
-  new_pos[0] = pos[0] + (vel[0] * cos(pos[2]) + vel[1] * cos(M_PI_2 + pos[2])) * dt;
-  new_pos[1] = pos[1] + (vel[0] * sin(pos[2]) + vel[1] * sin(M_PI_2 + pos[2])) * dt;
-  new_pos[2] = pos[2] + vel[2] * dt;
-  return new_pos;
-}
+void UrsaTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){
+  double x; double y; double z;
+  for(unsigned int i=0; i<traj.getPointsSize(); i++){
+    geometry_msgs::PoseStamped pose;
+    traj.getPoint(i, x, y, z);
 
-/**
- * cheange vel using acceleration limits to converge towards sample_target-vel
- */
-Eigen::Vector3f UrsaTrajectoryGenerator::computeNewVelocities(const Eigen::Vector3f& sample_target_vel,
-    const Eigen::Vector3f& vel, Eigen::Vector3f acclimits, double dt) {
-  Eigen::Vector3f new_vel = Eigen::Vector3f::Zero();
-  for (int i = 0; i < 3; ++i) {
-    if (vel[i] < sample_target_vel[i]) {
-      new_vel[i] = std::min(double(sample_target_vel[i]), vel[i] + acclimits[i] * dt);
-    } else {
-      new_vel[i] = std::max(double(sample_target_vel[i]), vel[i] - acclimits[i] * dt);
-    }
+    pose.header.stamp = ros::Time::now();
+    pose.header.frame_id = "map";
+    pose.pose.position.x = x;
+    pose.pose.position.y = y;
+    pose.pose.position.z = 0.3;
+
+    traj_gen_paths_.push_back(pose);
   }
-  return new_vel;
+
+  base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
 }
 
 } /* namespace base_local_planner */

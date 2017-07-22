@@ -139,6 +139,8 @@ public:
         Eigen::Vector3f sample_target,
         base_local_planner::Trajectory& traj);
 
+  void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
+
 protected:
 
   unsigned int next_sample_index_;
@@ -156,6 +158,10 @@ protected:
   double sim_time_, sim_granularity_, angular_sim_granularity_;
   bool use_dwa_;
   double sim_period_; // only for dwa
+
+  // Publisher and data for traj gen visualizer
+  ros::Publisher visualize_traj_gen_pub_;
+  std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
 };
 
 } /* namespace base_local_planner */
