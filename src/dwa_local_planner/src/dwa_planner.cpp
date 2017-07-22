@@ -126,6 +126,10 @@ namespace dwa_local_planner {
   {
     ros::NodeHandle private_nh("~/" + name);
 
+    // My stuff
+    visualize_result_traj_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_result_traj", 1);
+
+
     goal_front_costs_.setStopOnFailure( false );
     alignment_costs_.setStopOnFailure( false );
 
@@ -326,6 +330,27 @@ namespace dwa_local_planner {
     std::vector<base_local_planner::Trajectory> all_explored;
     bool a = scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
     cout << "@@@@@@@@@@ scored_sampling_planner_ @@@@@" << a << endl;
+    // My stuff
+    // Visualise the best trajectory
+    result_traj_vectorPoseStamped_.clear();
+    double x; double y; double z;
+    for(unsigned int i=0; i<result_traj_.getPointsSize(); i++){
+        geometry_msgs::PoseStamped pose;
+        result_traj_.getPoint(i, x, y, z);
+
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "map";
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        pose.pose.position.z = 1.5;
+
+        result_traj_vectorPoseStamped_.push_back(pose);
+        cout << "!!!!--traj.getPoint[" << i << "]: " << x << ", " << y << ", " << z << endl;
+        cout << "!!!!--pose.pose.position.x = " << pose.pose.position.x;
+        cout << "!!!!--pose.pose.position.y = " << pose.pose.position.y;
+        cout << "!!!!--pose.pose.position.z = " << pose.pose.position.z;
+    }
+    base_local_planner::publishPlan(result_traj_vectorPoseStamped_, visualize_result_traj_pub_);
 
 
     if(publish_traj_pc_)

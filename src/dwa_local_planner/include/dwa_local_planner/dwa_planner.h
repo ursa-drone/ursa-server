@@ -178,6 +178,10 @@ namespace dwa_local_planner {
       base_local_planner::MapGridCostFunction alignment_costs_;
 
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
+
+        // My stuff
+        ros::Publisher visualize_result_traj_pub_;
+        std::vector<geometry_msgs::PoseStamped> result_traj_vectorPoseStamped_;
   };
 };
 #endif

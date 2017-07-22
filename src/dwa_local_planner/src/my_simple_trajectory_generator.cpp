@@ -80,7 +80,6 @@ void SimpleTrajectoryGenerator::initialise(
 
     // Set up our pointers (used in other functions)
     discretize_by_time_ = discretize_by_time;
-    pos_ = pos;
     vel_ = vel;
     limits_ = limits;
 
@@ -89,15 +88,34 @@ void SimpleTrajectoryGenerator::initialise(
     visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
     traj_gen_paths_.clear();
 
-    next_sample_index_ = 0;  cout << "!!!!--next_sample_index_: " << next_sample_index_ << endl;
-    sample_params_.clear();  cout << "!!!!--sample_params_.size(): " << sample_params_.size() << endl;
+// Clear sample points
+  sample_params_.clear();
+  next_sample_index_ = 0;
+  pos_ = pos;
+  double x_diff, y_diff, distance_sq;
 
-    Eigen::Vector3f goal(   global_plan.back().pose.position.x,
-                            global_plan.back().pose.position.y,
-                            1);
+  // Add in the first point from the global plan
+  Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
+  test_point[0]=global_plan.back().pose.position.x;
+  test_point[1]=global_plan.back().pose.position.y;
+  test_point[2]=tf::getYaw(global_plan.back().pose.orientation);
+  sample_params_.push_back(test_point);
 
-    sample_params_.push_back(goal);
-    cout << "!!!!--sample_params_: " << sample_params_[0] << endl;
+  // Iterate over the remaining points and add if they are seperated by at least 10cm (make sure to add the last point)
+  std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
+  for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
+    geometry_msgs::PoseStamped& w = *poseIt;
+    x_diff = sample_params_.back()[0]-w.pose.position.x;
+    y_diff = sample_params_.back()[1]-w.pose.position.y;
+    distance_sq = x_diff*x_diff + y_diff*y_diff;
+    if (distance_sq>=0.01 || poseIt == global_plan.end()){
+      test_point[0]=w.pose.position.x;
+      test_point[1]=w.pose.position.y;
+      test_point[2]=tf::getYaw(w.pose.orientation);
+      sample_params_.push_back(test_point);
+    }
+  }
+
 }
 
 void SimpleTrajectoryGenerator::setParameters(
@@ -151,22 +169,37 @@ bool SimpleTrajectoryGenerator::nextTrajectory(Trajectory &comp_traj) {
 bool SimpleTrajectoryGenerator::generateTrajectory(
     Eigen::Vector3f pos,
     Eigen::Vector3f vel,
-    Eigen::Vector3f sample_target_vel,
+    Eigen::Vector3f sample_target,
     base_local_planner::Trajectory& traj) {
 
-    cout << "!!!!--pos: " << pos << endl;
-    cout << "!!!!--vel: " << vel << endl;
-    cout << "!!!!--sample_target_vel: " << sample_target_vel << endl;
+  double eps = 1e-4;
+  //traj.cost_   = -1.0; // placed here in case we return early
+  //trajectory might be reused so we'll make sure to reset it
+  traj.resetPoints();
 
-    double eps = 1e-4;
-    traj.cost_   = -1.0; // placed here in case we return early
+  //how many steps do we need to simulate?
+  int num_steps;
+  double x_diff = sample_target[0]-pos[0];
+  double y_diff = sample_target[1]-pos[1];
+  double distance_sq = x_diff*x_diff+y_diff*y_diff;
+  double distance=sqrt(distance_sq);
+  num_steps = distance/0.1; //Parameterise this - currently 10cm
+  if (num_steps==0) num_steps=1;
 
-    traj.resetPoints();
-    traj.addPoint(sample_target_vel[0], sample_target_vel[1], sample_target_vel[2]);
+  //simulate the trajectory
+  for (int i = 0; i < num_steps; ++i) {
+
+    //add the point to the trajectory
+    traj.addPoint(pos[0], pos[1], sample_target[2]);
+
+    pos[0]+=x_diff/num_steps;
+    pos[1]+=y_diff/num_steps;
+
+  } // end for simulation steps
+
     VisualiseTrajectoryGenerator(traj);
 
-  cout << "!!!!--num_steps " << sample_target_vel << endl;
-  return 1; // true if trajectory has at least one point
+  return num_steps > 0; // true if trajectory has at least one point
 }
 
 void SimpleTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){
@@ -175,17 +208,13 @@ void SimpleTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner:
     double x; double y; double z;
     for(unsigned int i=0; i<traj.getPointsSize(); i++){
         geometry_msgs::PoseStamped pose;
-        pose.header.stamp = ros::Time::now();
-        pose.header.frame_id = "map";
-        traj_gen_paths_.push_back(pose);
-
         traj.getPoint(i, x, y, z);
 
         pose.header.stamp = ros::Time::now();
         pose.header.frame_id = "map";
         pose.pose.position.x = x;
         pose.pose.position.y = y;
-        pose.pose.position.z = z;
+        pose.pose.position.z = 1;
 
         traj_gen_paths_.push_back(pose);
         cout << "!!!!--traj.getPoint[" << i << "]: " << x << ", " << y << ", " << z << endl;
@@ -201,50 +230,6 @@ void SimpleTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner:
     }
 
     base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
-
-    // // ###########################################
-    // // Setup trajectory generator visualizer node
-    // // ###########################################
-    // int argc = 0; char **argv;
-    // ros::init(argc, argv, "trajectory_generator_paths");
-    // ros::NodeHandle n;
-    // ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-    // ros::Rate loop_rate(10);
-    // std_msgs::String msg;
-    // // ###########################################
-    // msg.data = "published message";
-    // // while (ros::ok()){
-    //     chatter_pub.publish(msg);
-    //     // ros::spinOnce();
-    //     // loop_rate.sleep();
-    // // }
-}
-
-Eigen::Vector3f SimpleTrajectoryGenerator::computeNewPositions(const Eigen::Vector3f& pos,
-    const Eigen::Vector3f& vel, double dt) {
-  Eigen::Vector3f new_pos = Eigen::Vector3f::Zero();
-  new_pos[0] = pos[0] + (vel[0] * cos(pos[2]) + vel[1] * cos(M_PI_2 + pos[2])) * dt;
-  new_pos[1] = pos[1] + (vel[0] * sin(pos[2]) + vel[1] * sin(M_PI_2 + pos[2])) * dt;
-  new_pos[2] = pos[2] + vel[2] * dt;
-  return new_pos;
-}
-
-
-
-/**
- * cheange vel using acceleration limits to converge towards sample_target-vel
- */
-Eigen::Vector3f SimpleTrajectoryGenerator::computeNewVelocities(const Eigen::Vector3f& sample_target_vel,
-    const Eigen::Vector3f& vel, Eigen::Vector3f acclimits, double dt) {
-  Eigen::Vector3f new_vel = Eigen::Vector3f::Zero();
-  for (int i = 0; i < 3; ++i) {
-    if (vel[i] < sample_target_vel[i]) {
-      new_vel[i] = std::min(double(sample_target_vel[i]), vel[i] + acclimits[i] * dt);
-    } else {
-      new_vel[i] = std::max(double(sample_target_vel[i]), vel[i] - acclimits[i] * dt);
-    }
-  }
-  return new_vel;
 }
 
 } /* namespace base_local_planner */
