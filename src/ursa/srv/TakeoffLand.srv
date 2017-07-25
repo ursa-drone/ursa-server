@@ -1,0 +1,4 @@
+float32 height
+int8 takeoff
+---
+int8 success

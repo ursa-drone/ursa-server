@@ -31,9 +31,10 @@
     type="robot_state_publisher" />
 
     <!-- SCRIPTS from URSA package -->
-  <node name="ursa_sim_node" pkg="ursa" type="simulation.py" output="screen" required="true"/>
+  <node name="ursa_controller" pkg="ursa" type="controller.py" output="screen" required="true"/>
   <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true"/>
   <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
+  <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true" />
 
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="

@@ -1,0 +1,7 @@
+<library path="lib/libursa_gui">
+  <class name="ursa_gui/Ursa" type="ursa_gui::ursa_panel" base_class_type="rviz::Panel">
+    <description>
+      GUI for URSA control in RVIZ
+    </description>
+  </class>
+</library>
