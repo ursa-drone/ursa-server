@@ -77,7 +77,7 @@ namespace ursa_local_planner {
     stop_time_buffer_ = config.stop_time_buffer;
     oscillation_costs_.setOscillationResetDist(config.oscillation_reset_dist, config.oscillation_reset_angle);
     forward_point_distance_ = config.forward_point_distance;
-    goal_front_costs_.setXShift(forward_point_distance_);
+    // goal_front_costs_.setXShift(forward_point_distance_);
     alignment_costs_.setXShift(forward_point_distance_);
  
     // obstacle costs can vary due to scaling footprint feature
@@ -117,12 +117,11 @@ namespace ursa_local_planner {
       planner_util_(planner_util),
       obstacle_costs_(planner_util->getCostmap()),
       path_costs_(planner_util->getCostmap()),
-      goal_front_costs_(planner_util->getCostmap(), 0.0, 0.0, true),
       alignment_costs_(planner_util->getCostmap())
   {
     ros::NodeHandle private_nh("~/" + name);
 
-    goal_front_costs_.setStopOnFailure( false );
+    // goal_front_costs_.setStopOnFailure( false );
     alignment_costs_.setStopOnFailure( false );
 
     //Assuming this planner is being run within the navigation stack, we can
@@ -166,7 +165,7 @@ namespace ursa_local_planner {
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
     critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    //critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+    critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
     //critics.push_back(&path_costs_); // prefers trajectories on global path
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
@@ -251,6 +250,7 @@ namespace ursa_local_planner {
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
     goal_costs_.init(1,global_plan_);
+    goal_front_costs_.init(1,global_plan_);
 
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
@@ -272,7 +272,7 @@ namespace ursa_local_planner {
     front_global_plan.back().pose.position.y = front_global_plan.back().pose.position.y + forward_point_distance_ *
       sin(angle_to_goal);
 
-    goal_front_costs_.setTargetPoses(front_global_plan);
+    // goal_front_costs_.setTargetPoses(front_global_plan);
     
     // keeping the nose on the path
     if (sq_dist > forward_point_distance_ * forward_point_distance_ * cheat_factor_) {
