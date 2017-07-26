@@ -3,50 +3,68 @@ import rospy
 import geometry_msgs.msg
 import mavros_msgs.srv
 import mavros_msgs.msg
+import ursa.srv
 import tf2_ros
+import threading
 
-def set_position(x, y, z):
+currentx=0
+currenty=0
+currentz=0
+takeOff=False
+
+def set_position_thread():
+    rate = rospy.Rate(20)
     br = tf2_ros.TransformBroadcaster()
     setpoint = geometry_msgs.msg.TransformStamped()
-
-    setpoint.header.stamp = rospy.Time.now()
     setpoint.header.frame_id = "map"
     setpoint.child_frame_id = "setpoint"
-    setpoint.transform.translation.x = x
-    setpoint.transform.translation.y = y
-    setpoint.transform.translation.z = z
-    setpoint.transform.rotation.w = 1
-    br.sendTransform(setpoint)
-
-def setpoint_buffer(rate):
-    for i in range(10):
-        print i,
-        set_position(0, 0, 1)
+    while True:
+        setpoint.header.stamp = rospy.Time.now()
+        setpoint.transform.translation.x = currentx
+        setpoint.transform.translation.y = currenty
+        setpoint.transform.translation.z = currentz
+        setpoint.transform.rotation.w = 1
+        br.sendTransform(setpoint)
         rate.sleep()
+
+def setpoint_land():
+    set_mode(0, "AUTO.LAND")
+    rospy.sleep(5)
+    if takeOff == False:
+        arm(False)
+
+def handle_takeoff_land(data):
+    global currentz
+    global takeOff
+    if data.takeoff and data.height <= 2.5:
+        currentz=data.height
+        set_mode(0, "OFFBOARD")
+        arm(True)
+        takeOff = True
+        return ursa.srv.TakeoffLandResponse(1)
+    elif data.height>2.5:
+        return ursa.srv.TakeoffLandResponse(-1)
+    elif not data.takeoff:
+        t = threading.Thread(target=setpoint_land)
+        t.daemon = True
+        takeOff = False
+        t.start()
+        return ursa.srv.TakeoffLandResponse(1)
+
 
 if __name__ == '__main__':
     rospy.init_node('ursa_controller', anonymous=True)
     rate = rospy.Rate(20)
 
-    # setup services
+    # setup services as client
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
     arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
 
-    previous_input = None
-    while not rospy.is_shutdown():
-        # get user input
-        user_input = raw_input()
-        print ">>> ", user_input
+    # setup services as server
+    rospy.Service('ursa_takeoff_land', ursa.srv.TakeoffLand, handle_takeoff_land)
 
-        if user_input == 'l':
-            set_mode(0, "AUTO.LAND")
-        elif user_input == 't':
-            setpoint_buffer(rate)
-            set_mode(0, "OFFBOARD")
-            arm(True)
-        elif user_input == 'd':
-            arm(False)
-        elif user_input == 'p':
-            set_mode(0, "POSCTL")
+    # start tf publisher thread
+    t = threading.Thread(target=set_position_thread)
+    t.start()
 
-        rate.sleep()
+    rospy.spin()
