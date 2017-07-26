@@ -59,7 +59,7 @@
 #include <base_local_planner/map_grid_cost_function.h>
 #include <base_local_planner/obstacle_cost_function.h>
 #include <base_local_planner/simple_scored_sampling_planner.h>
-#include <dwa_local_planner/my_simple_trajectory_generator.h>
+#include <dwa_local_planner/my_trajectory_cost_function.h>
 
 #include <nav_msgs/Path.h>
 
@@ -173,15 +173,14 @@ namespace dwa_local_planner {
       base_local_planner::OscillationCostFunction oscillation_costs_;
       base_local_planner::ObstacleCostFunction obstacle_costs_;
       base_local_planner::MapGridCostFunction path_costs_;
-      base_local_planner::MapGridCostFunction goal_costs_;
+      // base_local_planner::MapGridCostFunction goal_costs_;
       base_local_planner::MapGridCostFunction goal_front_costs_;
       base_local_planner::MapGridCostFunction alignment_costs_;
 
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
 
-        // My stuff
-        ros::Publisher visualize_result_traj_pub_;
-        std::vector<geometry_msgs::PoseStamped> result_traj_vectorPoseStamped_;
+      // My stuff
+      MyTrajectoryCostFunction goal_costs_;
   };
 };
 #endif

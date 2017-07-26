@@ -35,12 +35,15 @@
  * Author: TKruse
  *********************************************************************/
 
-#ifndef TRAJECTORYCOSTFUNCTION_H_
-#define TRAJECTORYCOSTFUNCTION_H_
+#ifndef MYTRAJECTORYCOSTFUNCTION_H_
+#define MYTRAJECTORYCOSTFUNCTION_H_
 
 #include <base_local_planner/trajectory.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <base_local_planner/trajectory_cost_function.h>
 
-namespace base_local_planner {
+
+namespace dwa_local_planner {
 
 /**
  * @class TrajectoryCostFunction
@@ -49,7 +52,7 @@ namespace base_local_planner {
  * The prepare method is called before each batch run, and then for each
  * trajectory of the sampling set, score_trajectory may be called.
  */
-class TrajectoryCostFunction {
+class MyTrajectoryCostFunction : public base_local_planner::TrajectoryCostFunction {
 public:
 
   /**
@@ -57,12 +60,12 @@ public:
    * General updating of context values if required.
    * Subclasses may overwrite. Return false in case there is any error.
    */
-  virtual bool prepare() = 0;
+  bool prepare(std::vector<geometry_msgs::PoseStamped> global_plan);
 
   /**
    * return a score for trajectory traj
    */
-  virtual double scoreTrajectory(Trajectory &traj) = 0;
+  double scoreTrajectory(base_local_planner::Trajectory &traj);
 
   double getScale() {
     return scale_;
@@ -72,13 +75,14 @@ public:
     scale_ = scale;
   }
 
-  virtual ~TrajectoryCostFunction() {}
+  ~MyTrajectoryCostFunction() {}
 
 protected:
-  TrajectoryCostFunction(double scale = 1.0): scale_(scale) {}
+  MyTrajectoryCostFunction(double scale = 1.0): scale_(scale) {}
 
 private:
   double scale_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
 };
 
 }

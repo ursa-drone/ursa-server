@@ -36,14 +36,31 @@
  *********************************************************************/
 #include <dwa_local_planner/my_trajectory_cost_function.h>
 
-namespace base_local_planner {
+namespace dwa_local_planner {
 
-    bool TrajectoryCostFunction::prepare(){
-        
+    bool MyTrajectoryCostFunction::prepare(std::vector<geometry_msgs::PoseStamped> global_plan){
+        global_plan_ = global_plan;
     }
 
-    double TrajectoryCostFunction::scoreTrajectory(Trajectory &traj){
+    double MyTrajectoryCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj){
+        //Setup
+        double x_end, y_end, th_end;
+        traj.getEndpoint(x_end, y_end, th_end);
+        double x_diff, y_diff, distance_sq;
 
+        //Iterate over the global plan - find a close point - use that to score
+        int i=global_plan_.size();
+        std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
+        for (poseIt=global_plan_.begin() ; poseIt < global_plan_.end(); poseIt++, i--){
+        geometry_msgs::PoseStamped& w = *poseIt;
+        x_diff = x_end-w.pose.position.x;
+        y_diff = y_end-w.pose.position.y;
+        distance_sq = x_diff*x_diff + y_diff*y_diff;
+        if (distance_sq<=0.01){
+          return i;
+        }
+        }
+        return -1.0;
     }
 
 }

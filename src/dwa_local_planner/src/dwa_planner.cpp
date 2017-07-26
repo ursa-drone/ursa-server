@@ -126,9 +126,6 @@ namespace dwa_local_planner {
   {
     ros::NodeHandle private_nh("~/" + name);
 
-    // My stuff
-    visualize_result_traj_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_result_traj", 1);
-
 
     goal_front_costs_.setStopOnFailure( false );
     alignment_costs_.setStopOnFailure( false );
@@ -172,11 +169,11 @@ namespace dwa_local_planner {
     // set up all the cost functions that will be applied in order
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
-    critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
+    // critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
     critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
-    critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
-    critics.push_back(&path_costs_); // prefers trajectories on global path
+    // critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+    // critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
+    // critics.push_back(&path_costs_); // prefers trajectories on global path
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
 
     // trajectory generators
@@ -192,7 +189,7 @@ namespace dwa_local_planner {
   bool DWAPlanner::getCellCosts(int cx, int cy, float &path_cost, float &goal_cost, float &occ_cost, float &total_cost) {
 
     path_cost = path_costs_.getCellCosts(cx, cy);
-    goal_cost = goal_costs_.getCellCosts(cx, cy);
+    // goal_cost = goal_costs_.getCellCosts(cx, cy);
     occ_cost = planner_util_->getCostmap()->getCost(cx, cy);
     if (path_cost == path_costs_.obstacleCosts() ||
         path_cost == path_costs_.unreachableCellCosts() ||
@@ -258,7 +255,8 @@ namespace dwa_local_planner {
     path_costs_.setTargetPoses(global_plan_);
 
     // costs for not going towards the local goal as much as possible
-    goal_costs_.setTargetPoses(global_plan_);
+    // goal_costs_.setTargetPoses(global_plan_);
+    goal_costs_.prepare(global_plan_);
 
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
@@ -329,28 +327,6 @@ namespace dwa_local_planner {
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
     bool a = scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
-    cout << "@@@@@@@@@@ scored_sampling_planner_ @@@@@" << a << endl;
-    // My stuff
-    // Visualise the best trajectory
-    result_traj_vectorPoseStamped_.clear();
-    double x; double y; double z;
-    for(unsigned int i=0; i<result_traj_.getPointsSize(); i++){
-        geometry_msgs::PoseStamped pose;
-        result_traj_.getPoint(i, x, y, z);
-
-        pose.header.stamp = ros::Time::now();
-        pose.header.frame_id = "map";
-        pose.pose.position.x = x;
-        pose.pose.position.y = y;
-        pose.pose.position.z = 1.5;
-
-        result_traj_vectorPoseStamped_.push_back(pose);
-        cout << "!!!!--traj.getPoint[" << i << "]: " << x << ", " << y << ", " << z << endl;
-        cout << "!!!!--pose.pose.position.x = " << pose.pose.position.x;
-        cout << "!!!!--pose.pose.position.y = " << pose.pose.position.y;
-        cout << "!!!!--pose.pose.position.z = " << pose.pose.position.z;
-    }
-    base_local_planner::publishPlan(result_traj_vectorPoseStamped_, visualize_result_traj_pub_);
 
 
     if(publish_traj_pc_)
