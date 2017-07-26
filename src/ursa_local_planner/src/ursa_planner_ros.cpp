@@ -46,6 +46,8 @@
 #include <base_local_planner/goal_functions.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseArray.h>
+#include <iostream>
+using namespace std;
 
 //register this planner as a BaseLocalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(ursa_local_planner::UrsaPlannerROS, nav_core::BaseLocalPlanner)
@@ -162,11 +164,12 @@ namespace ursa_local_planner {
   void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, l_plan_pub_);
 
+    // Visualize pose at each point along local plan
     geometry_msgs::PoseArray local_plan_pose_array;
     local_plan_pose_array.header.stamp = path[0].header.stamp;
     local_plan_pose_array.header.frame_id = path[0].header.frame_id;
     for (int i=0; i<path.size(); i++){
-        local_plan_pose_array.poses[i] = path[i].pose;
+        local_plan_pose_array.poses.push_back(path[i].pose);
     }
     l_plan_pose_array_pub_.publish(local_plan_pose_array);
   }
