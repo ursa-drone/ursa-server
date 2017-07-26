@@ -164,6 +164,18 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
   int num_steps;
   double x_diff = sample_target[0]-pos[0];
   double y_diff = sample_target[1]-pos[1];
+  double heading = fabs(atan(y_diff / x_diff));
+  if ((x_diff >= 0) && (y_diff >= 0)) {
+    heading = heading;
+  }
+  else if ((x_diff < 0) && (y_diff >= 0)){
+    heading = M_PI - heading;
+  }
+  else if ((x_diff < 0) && (y_diff < 0)){
+    heading = M_PI + heading;
+  }else{
+    heading = -heading;
+  }
   double distance_sq = x_diff*x_diff+y_diff*y_diff;
   double distance=sqrt(distance_sq);
   num_steps = distance/0.1; //Parameterise this - currently 10cm
@@ -173,7 +185,7 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
   for (int i = 0; i < num_steps; ++i) {
 
   //add the point to the trajectory
-  traj.addPoint(pos[0], pos[1], sample_target[2]);
+  traj.addPoint(pos[0], pos[1], heading);
 
   pos[0]+=x_diff/num_steps;
   pos[1]+=y_diff/num_steps;
