@@ -250,7 +250,7 @@ namespace ursa_local_planner {
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
     goal_costs_.init(1,global_plan_);
-    goal_front_costs_.init(1,global_plan_);
+    goal_front_costs_.init(1, global_pose);
 
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();

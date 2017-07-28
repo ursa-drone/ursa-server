@@ -104,6 +104,14 @@ void UrsaTrajectoryGenerator::initialise(
     sample_params_.push_back(test_point);
   }
   }
+
+  // Add points that are at current position of drone but rotated
+  for (int i=0; i<360; i+=10){
+    test_point[0]=global_plan.front().pose.position.x;
+    test_point[1]=global_plan.front().pose.position.y;
+    test_point[2]=M_PI * i / 180.0;
+    sample_params_.push_back(test_point);
+  }
 }
 
 void UrsaTrajectoryGenerator::setParameters(
@@ -155,45 +163,61 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     Eigen::Vector3f vel,
     Eigen::Vector3f sample_target,
     base_local_planner::Trajectory& traj) {
-  double eps = 1e-4;
-  //traj.cost_   = -1.0; // placed here in case we return early
-  //trajectory might be reused so we'll make sure to reset it
-  traj.resetPoints();
 
-  //how many steps do we need to simulate?
-  int num_steps;
-  double x_diff = sample_target[0]-pos[0];
-  double y_diff = sample_target[1]-pos[1];
-  double heading = fabs(atan(y_diff / x_diff));
-  if ((x_diff >= 0) && (y_diff >= 0)) {
-    heading = heading;
-  }
-  else if ((x_diff < 0) && (y_diff >= 0)){
-    heading = M_PI - heading;
-  }
-  else if ((x_diff < 0) && (y_diff < 0)){
-    heading = M_PI + heading;
-  }else{
-    heading = -heading;
-  }
-  double distance_sq = x_diff*x_diff+y_diff*y_diff;
-  double distance=sqrt(distance_sq);
-  num_steps = distance/0.1; //Parameterise this - currently 10cm
-  if (num_steps==0) num_steps=1;
+    double eps = 1e-4;
+    //traj.cost_   = -1.0; // placed here in case we return early
+    //trajectory might be reused so we'll make sure to reset it
+    traj.resetPoints();
 
-  //simulate the trajectory
-  for (int i = 0; i < num_steps; ++i) {
+    //how many steps do we need to simulate?
+    int num_steps;
+    double x_diff = sample_target[0]-pos[0];
+    double y_diff = sample_target[1]-pos[1];
+    double heading;
 
-  //add the point to the trajectory
-  traj.addPoint(pos[0], pos[1], heading);
+  // set the orientation variable
+    if (fabs(x_diff) < DBL_EPSILON) {
+        heading = 0;
+        ROS_INFO("Prevented atan failure: x_diff < DBL_EPSILON -- x_diff=%f and DBL_EPSILON=%f", x_diff, DBL_EPSILON);
+    } else{
+            heading = fabs(atan(y_diff / x_diff));
+            if ((x_diff >= 0) && (y_diff >= 0)) {
+                heading = heading;
+                // ROS_INFO("1 :: x_diff=%0.3f, y_diff=%0.3f, heading=%0.3f", x_diff, y_diff, heading);
+            }
+            else if ((x_diff < 0) && (y_diff >= 0)){
+                heading = M_PI - heading;
+                // ROS_INFO("2 :: x_diff=%0.3f, y_diff=%0.3f, heading=%0.3f", x_diff, y_diff, heading);
+            }
+            else if ((x_diff < 0) && (y_diff < 0)){
+                heading = M_PI + heading;
+                // ROS_INFO("3 :: x_diff=%0.3f, y_diff=%0.3f, heading=%0.3f", x_diff, y_diff, heading);
+            }else{
+                heading = -heading;
+                // ROS_INFO("4 :: x_diff=%0.3f, y_diff=%0.3f, heading=%0.3f", x_diff, y_diff, heading);
+            }
+    }
 
-  pos[0]+=x_diff/num_steps;
-  pos[1]+=y_diff/num_steps;
+    double distance_sq = x_diff*x_diff+y_diff*y_diff;
+    double distance=sqrt(distance_sq);
+    num_steps = distance/0.1; //Parameterise this - currently 10cm
+    if (num_steps==0) num_steps=1;
 
-  } // end for simulation steps
-  VisualiseTrajectoryGenerator(traj);
+    //simulate the trajectory
+    for (int i = 0; i < num_steps; ++i) {
+        //add the point to the trajectory
+        traj.addPoint(pos[0], pos[1], heading);
+        pos[0]+=x_diff/num_steps;
+        pos[1]+=y_diff/num_steps;
+    } // end for simulation steps
 
-  return num_steps > 0; // true if trajectory has at least one point
+    try{
+        ROS_INFO("pose theta=%0.2f, traj_theta=%0.2f", pos[2], heading);
+    } catch(int e){
+         ROS_INFO("caught");
+    }
+    VisualiseTrajectoryGenerator(traj);
+    return num_steps > 0; // true if trajectory has at least one point
 }
 
 void UrsaTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){

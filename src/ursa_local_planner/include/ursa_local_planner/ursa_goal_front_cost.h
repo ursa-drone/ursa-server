@@ -41,6 +41,8 @@
 #include <base_local_planner/trajectory_cost_function.h>
 #include <base_local_planner/trajectory.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <Eigen/Core>
+#include <tf/transform_datatypes.h>
 
 namespace ursa_local_planner {
 
@@ -50,7 +52,7 @@ public:
 	UrsaPreferForwardCostFunction() {}
   	~UrsaPreferForwardCostFunction() {}
 
-  void init(double penalty, std::vector<geometry_msgs::PoseStamped> global_plan);
+  void init(double penalty, tf::Stamped<tf::Pose> global_pose);
 
   double scoreTrajectory(base_local_planner::Trajectory &traj);
 
@@ -62,9 +64,10 @@ public:
 
 private:
 	double penalty_;
-	std::vector<geometry_msgs::PoseStamped> global_plan_;
+	tf::Stamped<tf::Pose> global_pose_;
 	geometry_msgs::PoseStamped pose_stamped_;
 };
 
 } /* namespace base_local_planner */
 #endif /* PREFER_FORWARD_COST_FUNCTION_H_ */
+
