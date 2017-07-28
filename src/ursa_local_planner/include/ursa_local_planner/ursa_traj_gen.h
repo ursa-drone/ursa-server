@@ -42,6 +42,7 @@
 #include <base_local_planner/local_planner_limits.h>
 #include <Eigen/Core>
 #include <base_local_planner/goal_functions.h>
+#include <tf/transform_datatypes.h>
 
 namespace ursa_local_planner {
 
@@ -161,6 +162,12 @@ protected:
 
   // Publisher and data for traj gen visualizer
   ros::Publisher visualize_traj_gen_pub_;
+  ros::Publisher visualize_pose_;
+  ros::Publisher visualize_heading_;
+
+  double robot_radius_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
+
   std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
 };
 
