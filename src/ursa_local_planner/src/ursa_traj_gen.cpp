@@ -74,7 +74,13 @@ void UrsaTrajectoryGenerator::initialise(
 
   // Setup node handler and publishers
   ros::NodeHandle private_nh("~/");
+  ros::NodeHandle nh;
   visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
+  visualize_pose_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_pose", 1);
+  visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
+  private_nh.getParam("global_costmap/robot_radius", robot_radius_);
+  global_plan_ = global_plan;
+
   traj_gen_paths_.clear();
 
   // Clear sample points
@@ -203,6 +209,40 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     num_steps = distance/0.1; //Parameterise this - currently 10cm
     if (num_steps==0) num_steps=1;
 
+      // If goal is inside robot radius then the local plan orientation should be = goal orientation
+      double goal_x = global_plan_.back().pose.position.x;
+      double goal_y = global_plan_.back().pose.position.y;
+
+    if (((pos[0] - robot_radius_*1.5) <= goal_x) &&
+        (goal_x < (pos[0] + robot_radius_*1.5))  &&
+        ((pos[1] - robot_radius_*1.5) <= goal_y) &&
+        (goal_y < (pos[1] + robot_radius_*1.5))) {
+            heading = tf::getYaw(global_plan_.back().pose.orientation);
+    }
+    else{
+            heading = heading;
+    }
+
+    // Visualize current pose
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "map";
+    pose.header.stamp = ros::Time::now();
+    pose.pose.position.x = pos[0];
+    pose.pose.position.y = pos[1];
+    pose.pose.position.z = 0;
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(pos[2]);
+    visualize_pose_.publish(pose);
+
+    // Visualize local trajectory pose goal
+    geometry_msgs::PoseStamped trajpose;
+    trajpose.header.frame_id = "map";
+    trajpose.header.stamp = ros::Time::now();
+    trajpose.pose.position.x = pos[0];
+    trajpose.pose.position.y = pos[1];
+    trajpose.pose.position.z = 0;
+    trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(heading);
+    visualize_heading_.publish(trajpose);
+
     //simulate the trajectory
     for (int i = 0; i < num_steps; ++i) {
         //add the point to the trajectory
@@ -211,11 +251,6 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
         pos[1]+=y_diff/num_steps;
     } // end for simulation steps
 
-    try{
-        ROS_INFO("pose theta=%0.2f, traj_theta=%0.2f", pos[2], heading);
-    } catch(int e){
-         ROS_INFO("caught");
-    }
     VisualiseTrajectoryGenerator(traj);
     return num_steps > 0; // true if trajectory has at least one point
 }

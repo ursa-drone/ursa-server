@@ -73,13 +73,16 @@ def waypointCB(data):
                                        rospy.Duration(1.0)) #wait for 1 second
 
     # If goal is inside robot foot print then setpoint as goal opposed to local plan
-    if (((current_pose.pose.position.x - robot_radius) < global_plan_endpoint.pose.position.x) and
-        (global_plan_endpoint.pose.position.x < (current_pose.pose.position.x + robot_radius)) and
-        ((current_pose.pose.position.y - robot_radius) < global_plan_endpoint.pose.position.y) and
-        (global_plan_endpoint.pose.position.y < (current_pose.pose.position.y + robot_radius))):
-        mapPose = global_plan_endpoint
-    else:
-        mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+    # Commented out in response to issue #2.  Set local planner orientation in trajectory generator when inside robot radius.
+    # if (((current_pose.pose.position.x - robot_radius) < global_plan_endpoint.pose.position.x) and
+    #     (global_plan_endpoint.pose.position.x < (current_pose.pose.position.x + robot_radius)) and
+    #     ((current_pose.pose.position.y - robot_radius) < global_plan_endpoint.pose.position.y) and
+    #     (global_plan_endpoint.pose.position.y < (current_pose.pose.position.y + robot_radius))):
+    #     mapPose = global_plan_endpoint
+    # else:
+    #     mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+
+    mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
 
     global setpoint
     br=tf2_ros.TransformBroadcaster()
