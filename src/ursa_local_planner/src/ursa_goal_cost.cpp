@@ -39,8 +39,8 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
       return i*penalty_;
     }
   }
-
-  return -1.0;
+  return global_plan_.size();
+  // return -1.0;
 }
 
 } /* namespace ursa_local_planner */
