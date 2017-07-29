@@ -111,13 +111,13 @@ void UrsaTrajectoryGenerator::initialise(
   }
   }
 
-  // Add points that are at current position of drone but rotated
-  for (int i=0; i<360; i+=10){
-    test_point[0]=global_plan.front().pose.position.x;
-    test_point[1]=global_plan.front().pose.position.y;
-    test_point[2]=M_PI * i / 180.0;
-    sample_params_.push_back(test_point);
-  }
+  // // Add points that are at current position of drone but rotated
+  // for (int i=0; i<360; i+=10){
+  //   test_point[0]=global_plan.front().pose.position.x;
+  //   test_point[1]=global_plan.front().pose.position.y;
+  //   test_point[2]=M_PI * i / 180.0;
+  //   sample_params_.push_back(test_point);
+  // }
 }
 
 void UrsaTrajectoryGenerator::setParameters(
@@ -209,21 +209,61 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     num_steps = distance/0.1; //Parameterise this - currently 10cm
     if (num_steps==0) num_steps=1;
 
-      // If goal is inside robot radius then the local plan orientation should be = goal orientation
-      double goal_x = global_plan_.back().pose.position.x;
-      double goal_y = global_plan_.back().pose.position.y;
+    // If goal is inside robot radius then the local plan orientation should be = goal orientation
+    double goal_x = global_plan_.back().pose.position.x;
+    double goal_y = global_plan_.back().pose.position.y;
 
     if (((pos[0] - robot_radius_*1.5) <= goal_x) &&
         (goal_x < (pos[0] + robot_radius_*1.5))  &&
         ((pos[1] - robot_radius_*1.5) <= goal_y) &&
         (goal_y < (pos[1] + robot_radius_*1.5))) {
             heading = tf::getYaw(global_plan_.back().pose.orientation);
+            traj.addPoint(goal_x, goal_y, heading);
+            ROS_INFO("#### 1 ");
     }
     else{
-            heading = heading;
+        // If current orientation is more than 45 degrees away from global trajectory orientation at radius
+        // Then set target local path as in place but rotated towards global tracjectory
+        double theta_lower = pos[2] - M_PI/4;
+        double theta_upper = pos[2] + M_PI/4;
+
+        // get global orientation at robot radius
+        int i = 0;
+        double global_heading_x = global_plan_[0].pose.position.x;
+        double global_heading_y =  global_plan_[0].pose.position.y;
+        while (((pos[0] - robot_radius_) <= global_heading_x) &&
+                (global_heading_x < (pos[0] + robot_radius_))  &&
+                ((pos[1] - robot_radius_) <= global_heading_y) &&
+                (global_heading_y < (pos[1] + robot_radius_))) {
+                    i++;
+                    global_heading_x = global_plan_[i].pose.position.x;
+                    global_heading_y =  global_plan_[i].pose.position.y;
+                }
+        double global_heading_th = tf::getYaw(global_plan_[i].pose.orientation);
+
+        std::cout << "tl - " << theta_lower << ", tu - " << theta_upper  << ", he - " << heading << std::endl;
+        if (~((theta_lower < global_heading_th) && (global_heading_th < theta_upper))){
+            traj.addPoint(pos[0], pos[1], global_heading_th);
+            ROS_INFO("#### 2 ");
+        }
+        // behave normally
+        else{
+            ROS_INFO("#### 3 ");
+            double pos_x  = pos[0];
+            double pos_y  = pos[1];
+            //simulate the trajectory
+            for (int i = 0; i < num_steps; ++i) {
+                //add the point to the trajectory
+                traj.addPoint(pos_x, pos_y, heading);
+                pos_x+=x_diff/num_steps;
+                pos_y+=y_diff/num_steps;
+            }
+        } // end for simulation steps
     }
 
+
     // Visualize current pose
+    // Needs to be placed before position update
     geometry_msgs::PoseStamped pose;
     pose.header.frame_id = "map";
     pose.header.stamp = ros::Time::now();
@@ -234,6 +274,7 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     visualize_pose_.publish(pose);
 
     // Visualize local trajectory pose goal
+    // Needs to be placed after heading update
     geometry_msgs::PoseStamped trajpose;
     trajpose.header.frame_id = "map";
     trajpose.header.stamp = ros::Time::now();
@@ -242,14 +283,6 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     trajpose.pose.position.z = 0;
     trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(heading);
     visualize_heading_.publish(trajpose);
-
-    //simulate the trajectory
-    for (int i = 0; i < num_steps; ++i) {
-        //add the point to the trajectory
-        traj.addPoint(pos[0], pos[1], heading);
-        pos[0]+=x_diff/num_steps;
-        pos[1]+=y_diff/num_steps;
-    } // end for simulation steps
 
     VisualiseTrajectoryGenerator(traj);
     return num_steps > 0; // true if trajectory has at least one point
