@@ -222,11 +222,6 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
             ROS_INFO("#### 1 ");
     }
     else{
-        // If current orientation is more than 45 degrees away from global trajectory orientation at radius
-        // Then set target local path as in place but rotated towards global tracjectory
-        double theta_lower = pos[2] - M_PI/4;
-        double theta_upper = pos[2] + M_PI/4;
-
         // get global orientation at robot radius
         int i = 0;
         double global_heading_x = global_plan_[0].pose.position.x;
@@ -241,10 +236,17 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
                 }
         double global_heading_th = tf::getYaw(global_plan_[i].pose.orientation);
 
-        std::cout << "tl - " << theta_lower << ", tu - " << theta_upper  << ", he - " << heading << std::endl;
-        if (~((theta_lower < global_heading_th) && (global_heading_th < theta_upper))){
+
+        // If current orientation is more than 45 degrees away from global trajectory orientation at radius
+        // Then set target local path as in place but rotated towards global tracjectory
+        double theta_lower = pos[2] - M_PI/4;
+        double theta_upper = pos[2] + M_PI/4;
+        if (!((theta_lower < global_heading_th) && (global_heading_th < theta_upper))){
             traj.addPoint(pos[0], pos[1], global_heading_th);
             ROS_INFO("#### 2 ");
+            std::cout << "tl - " << theta_lower << ", tu - " << theta_upper  << ", he - " << global_heading_th << std::endl;
+            std::cout << "decision: " << ((theta_lower < global_heading_th) && (global_heading_th < theta_upper)) << std::endl;
+            std::cout << "~decision: " << !((theta_lower < global_heading_th) && (global_heading_th < theta_upper)) << std::endl;
         }
         // behave normally
         else{
