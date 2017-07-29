@@ -120,6 +120,7 @@ namespace ursa_local_planner {
       alignment_costs_(planner_util->getCostmap())
   {
     ros::NodeHandle private_nh("~/" + name);
+    private_nh.getParam("/move_base/global_costmap/robot_radius", robot_radius_);
 
     // goal_front_costs_.setStopOnFailure( false );
     alignment_costs_.setStopOnFailure( false );
@@ -249,7 +250,7 @@ namespace ursa_local_planner {
 
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
-    goal_costs_.init(1,global_plan_);
+    goal_costs_.init(1,global_plan_, global_pose, robot_radius_);
     goal_front_costs_.init(1, global_pose);
 
     // alignment costs

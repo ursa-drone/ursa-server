@@ -48,140 +48,112 @@
 namespace ursa_local_planner {
 
 void UrsaTrajectoryGenerator::initialise(
-  const Eigen::Vector3f& pos,
-  const Eigen::Vector3f& vel,
-  std::vector<geometry_msgs::PoseStamped> global_plan,
-  base_local_planner::LocalPlannerLimits* limits,
-  const Eigen::Vector3f& vsamples,
-  std::vector<Eigen::Vector3f> additional_samples,
-  bool discretize_by_time) {
-  initialise(pos, vel, global_plan, limits, vsamples, discretize_by_time);
-  // add static samples if any
-  sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
+    const Eigen::Vector3f& pos,
+    const Eigen::Vector3f& vel,
+    std::vector<geometry_msgs::PoseStamped> global_plan,
+    base_local_planner::LocalPlannerLimits* limits,
+    const Eigen::Vector3f& vsamples,
+    std::vector<Eigen::Vector3f> additional_samples,
+    bool discretize_by_time) {
+    initialise(pos, vel, global_plan, limits, vsamples, discretize_by_time);
+    // add static samples if any
+    sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
 }
 
 
 void UrsaTrajectoryGenerator::initialise(
-  const Eigen::Vector3f& pos,
-  const Eigen::Vector3f& vel,
-  std::vector<geometry_msgs::PoseStamped> global_plan,
-  base_local_planner::LocalPlannerLimits* limits,
-  const Eigen::Vector3f& vsamples,
-  bool discretize_by_time) {
-  /*
-   * We actually generate all path sample vectors here, from which to generate trajectories later on
-   */
+    const Eigen::Vector3f& pos,
+    const Eigen::Vector3f& vel,
+    std::vector<geometry_msgs::PoseStamped> global_plan,
+    base_local_planner::LocalPlannerLimits* limits,
+    const Eigen::Vector3f& vsamples,
+    bool discretize_by_time) {
+    /*
+     * We actually generate all path sample vectors here, from which to generate trajectories later on
+     */
 
-  // Setup node handler and publishers
-  ros::NodeHandle private_nh("~/");
-  ros::NodeHandle nh;
-  visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
-  visualize_pose_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_pose", 1);
-  visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
-  private_nh.getParam("global_costmap/robot_radius", robot_radius_);
-  global_plan_ = global_plan;
+    // Setup node handler and publishers
+    ros::NodeHandle private_nh("~/");
+    ros::NodeHandle nh;
+    visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
+    visualize_pose_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_pose", 1);
+    visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
+    private_nh.getParam("global_costmap/robot_radius", robot_radius_);
 
-  traj_gen_paths_.clear();
+    // Clear stuff and set up global variables
+    traj_gen_paths_.clear();
+    sample_params_.clear();
+    next_sample_index_ = 0;
+    pos_ = pos;
+    global_plan_ = global_plan;
+    std::cout << "global_plan_[10]" << global_plan_[10] << std::endl;
 
-  // Clear sample points
-  sample_params_.clear();
-  next_sample_index_ = 0;
-  pos_ = pos;
-  double x_diff, y_diff, distance_sq;
-
-  // Add in the first point from the global plan
-  Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
-  test_point[0]=global_plan.front().pose.position.x;
-  test_point[1]=global_plan.front().pose.position.y;
-  test_point[2]=tf::getYaw(global_plan.front().pose.orientation);
-  sample_params_.push_back(test_point);
-
-  // Iterate over the remaining points and add if they are seperated by at least 10cm (make sure to add the last point)
-  std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
-  for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
-  geometry_msgs::PoseStamped& w = *poseIt;
-  x_diff = sample_params_.back()[0]-w.pose.position.x;
-  y_diff = sample_params_.back()[1]-w.pose.position.y;
-  distance_sq = x_diff*x_diff + y_diff*y_diff;
-  if (distance_sq>=0.01 || poseIt == global_plan.end()){
-    test_point[0]=w.pose.position.x;
-    test_point[1]=w.pose.position.y;
-    test_point[2]=tf::getYaw(w.pose.orientation);
+    // Set the only point as at the origin and heading towards the global plan at robot radius
+    Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
+    test_point[0] = pos_[0]; test_point[1] = pos_[1]; test_point[2] = globalPlanHeadingAtRadius();
+    std::cout << "test_point[2]" << test_point[2] << std::endl;
     sample_params_.push_back(test_point);
-  }
-  }
+    }
 
-  // // Add points that are at current position of drone but rotated
-  // for (int i=0; i<360; i+=10){
-  //   test_point[0]=global_plan.front().pose.position.x;
-  //   test_point[1]=global_plan.front().pose.position.y;
-  //   test_point[2]=M_PI * i / 180.0;
-  //   sample_params_.push_back(test_point);
-  // }
+double UrsaTrajectoryGenerator::globalPlanHeadingAtRadius(){
+    // get global orientation at robot radius
+    int i = 0;
+    double global_heading_x = global_plan_[0].pose.position.x;
+    double global_heading_y =  global_plan_[0].pose.position.y;
+    while   (((pos_[0] - robot_radius_) <= global_heading_x) &&
+            (global_heading_x < (pos_[0] + robot_radius_))   &&
+            ((pos_[1] - robot_radius_) <= global_heading_y)  &&
+            (global_heading_y < (pos_[1] + robot_radius_))) {
+                i++;
+                global_heading_x = global_plan_[i].pose.position.x;
+                global_heading_y =  global_plan_[i].pose.position.y;
+            }
+    std::cout << "**i" << i << std::endl;
+    return tf::getYaw(global_plan_[i].pose.orientation);
 }
 
 void UrsaTrajectoryGenerator::setParameters(
-  double sim_time,
-  double sim_granularity,
-  double angular_sim_granularity,
-  bool use_dwa,
-  double sim_period) {
-  sim_time_ = sim_time;
-  sim_granularity_ = sim_granularity;
-  angular_sim_granularity_ = angular_sim_granularity;
-  use_dwa_ = use_dwa;
-  continued_acceleration_ = ! use_dwa_;
-  sim_period_ = sim_period;
+    double sim_time,
+    double sim_granularity,
+    double angular_sim_granularity,
+    bool use_dwa,
+    double sim_period) {
+    sim_time_ = sim_time;
+    sim_granularity_ = sim_granularity;
+    angular_sim_granularity_ = angular_sim_granularity;
+    use_dwa_ = use_dwa;
+    continued_acceleration_ = ! use_dwa_;
+    sim_period_ = sim_period;
 }
 
 /**
  * Whether this generator can create more trajectories
  */
 bool UrsaTrajectoryGenerator::hasMoreTrajectories() {
-  return next_sample_index_ < sample_params_.size();
+    return next_sample_index_ < sample_params_.size();
 }
 
 /**
  * Create and return the next sample trajectory
  */
 bool UrsaTrajectoryGenerator::nextTrajectory(base_local_planner::Trajectory &comp_traj) {
-  bool result = false;
-  if (hasMoreTrajectories()) {
-  if (generateTrajectory(
-    pos_,
-    vel_,
-    sample_params_[next_sample_index_],
-    comp_traj)) {
-    result = true;
-  }
-  }
-  next_sample_index_++;
-  return result;
+    bool result = false;
+    if (hasMoreTrajectories()) {
+    if (generateTrajectory(
+        pos_,
+        vel_,
+        sample_params_[next_sample_index_],
+        comp_traj)) {
+        result = true;
+    }
+    }
+    next_sample_index_++;
+    return result;
 }
 
-/**
- * @param pos current position of robot
- * @param vel unused
- * @param sample_target point on the global plan to generate trajectory
- */
-bool UrsaTrajectoryGenerator::generateTrajectory(
-    Eigen::Vector3f pos,
-    Eigen::Vector3f vel,
-    Eigen::Vector3f sample_target,
-    base_local_planner::Trajectory& traj) {
-
-    double eps = 1e-4;
-    //traj.cost_   = -1.0; // placed here in case we return early
-    //trajectory might be reused so we'll make sure to reset it
-    traj.resetPoints();
-
-    //how many steps do we need to simulate?
-    int num_steps;
-    double x_diff = sample_target[0]-pos[0];
-    double y_diff = sample_target[1]-pos[1];
+double UrsaTrajectoryGenerator::headingGivenXandY(double x_diff, double y_diff){
+    // set the orientation variable
     double heading;
-
-  // set the orientation variable
     if (fabs(x_diff) < DBL_EPSILON) {
         heading = 0;
         ROS_INFO("Prevented atan failure: x_diff < DBL_EPSILON -- x_diff=%f and DBL_EPSILON=%f", x_diff, DBL_EPSILON);
@@ -203,131 +175,96 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
                 // ROS_INFO("4 :: x_diff=%0.3f, y_diff=%0.3f, heading=%0.3f", x_diff, y_diff, heading);
             }
     }
-
-    double distance_sq = x_diff*x_diff+y_diff*y_diff;
-    double distance=sqrt(distance_sq);
-    num_steps = distance/0.1; //Parameterise this - currently 10cm
-    if (num_steps==0) num_steps=1;
-
-    // If goal is inside robot radius then the local plan orientation should be = goal orientation
-    double goal_x = global_plan_.back().pose.position.x;
-    double goal_y = global_plan_.back().pose.position.y;
-
-    // double tx, ty, tt;
-    // tx = -0.94;
-    // ty = 1.97;
-    // tt = 0;
-    // // tx = goal_x;
-    // // ty = goal_y;
-    // // tt = tf::getYaw(global_plan_.back().pose.orientation);
-    // std::cout << "tx - " << tx << ", ty - " << ty << ", tt - " << tt <<std::endl;
-    // traj.addPoint(tx, ty, tt);
-
-    if (((pos[0] - robot_radius_*1.5) <= goal_x) &&
-        (goal_x < (pos[0] + robot_radius_*1.5))  &&
-        ((pos[1] - robot_radius_*1.5) <= goal_y) &&
-        (goal_y < (pos[1] + robot_radius_*1.5))) {
-            heading = tf::getYaw(global_plan_.back().pose.orientation);
-            traj.addPoint(goal_x, goal_y, heading);
-            ROS_INFO("#### 1 ");
-    }
-    else{
-        // get global orientation at robot radius
-        int i = 0;
-        double global_heading_x = global_plan_[0].pose.position.x;
-        double global_heading_y =  global_plan_[0].pose.position.y;
-        while (((pos[0] - robot_radius_) <= global_heading_x) &&
-                (global_heading_x < (pos[0] + robot_radius_))  &&
-                ((pos[1] - robot_radius_) <= global_heading_y) &&
-                (global_heading_y < (pos[1] + robot_radius_))) {
-                    i++;
-                    global_heading_x = global_plan_[i].pose.position.x;
-                    global_heading_y =  global_plan_[i].pose.position.y;
-                }
-        double global_heading_th = tf::getYaw(global_plan_[i].pose.orientation);
-        // std::cout << "i - " << i << std::endl;
-        // std::cout << "global_plan_.back().pose.orientation" << global_plan_.back().pose.orientation << std::endl;
-        // std::cout << "global_plan_[i].pose.orientation" << global_plan_[i].pose.orientation << std::endl;
-        // std::cout << "tf::getYaw(global_plan_[i].pose.orientation)" << tf::getYaw(global_plan_[i].pose.orientation) << std::endl;
+    return heading;
+}
 
 
-        // If current orientation is more than 45 degrees away from global trajectory orientation at radius
-        // Then set target local path as in place but rotated towards global tracjectory
-        double theta_lower = pos[2] - M_PI/4;
-        double theta_upper = pos[2] + M_PI/4;
-        if (!((theta_lower < global_heading_th) && (global_heading_th < theta_upper))){
-            double tx, ty, tt;
-            tx = pos[0];
-            ty = pos[1];
-            tt = global_heading_th;
-            // tt = tf::getYaw(global_plan_.back().pose.orientation);
-            traj.addPoint(tx, ty, tt);
-            // traj.addPoint(pos[0]-0.1, pos[1]-0.1, global_heading_th);
-            // traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
-            ROS_INFO("#### 2 ");
-            // std::cout << "tx - " << tx << ", ty - " << ty << ", tt - " << tt <<std::endl;
-            // std::cout << "tl - " << theta_lower << ", tu - " << theta_upper  << ", he - " << global_heading_th << std::endl;
+/**
+ * @param pos current position of robot
+ * @param vel unused
+ * @param sample_target point on the global plan to generate trajectory
+ */
+bool UrsaTrajectoryGenerator::generateTrajectory(
+        Eigen::Vector3f pos,
+        Eigen::Vector3f vel,
+        Eigen::Vector3f sample_target,
+        base_local_planner::Trajectory& traj) {
+
+        double eps = 1e-4;
+        double heading;
+        //traj.cost_   = -1.0; // placed here in case we return early
+        //trajectory might be reused so we'll make sure to reset it
+        traj.resetPoints();
+
+        // If goal is inside robot radius then the local plan orientation should be = goal orientation
+        double goal_x = global_plan_.back().pose.position.x;
+        double goal_y = global_plan_.back().pose.position.y;
+        if (((pos[0] - robot_radius_*1.5) <= goal_x) &&
+                (goal_x < (pos[0] + robot_radius_*1.5))  &&
+                ((pos[1] - robot_radius_*1.5) <= goal_y) &&
+                (goal_y < (pos[1] + robot_radius_*1.5))) {
+                        heading = tf::getYaw(global_plan_.back().pose.orientation);
+                        traj.addPoint(goal_x, goal_y, heading);
+                        ROS_INFO("#### 1 ");
         }
-        // // behave normally
         else{
-            ROS_INFO("#### 3 ");
-            double pos_x  = pos[0];
-            double pos_y  = pos[1];
-            //simulate the trajectory
-            // for (int i = 0; i < num_steps; ++i) {
-            //     //add the point to the trajectory
-            //     traj.addPoint(pos_x, pos_y, heading);
-            //     pos_x+=x_diff/num_steps;
-            //     pos_y+=y_diff/num_steps;
-            // }
-            traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
-            // traj.addPoint(pos[0], pos[1], global_heading_th);
+                        ROS_INFO("#### 3 ");
+                        double pos_x  = pos[0];
+                        double pos_y  = pos[1];
+                        //simulate the trajectory
+                        // for (int i = 0; i < num_steps; ++i) {
+                        //     //add the point to the trajectory
+                        //     traj.addPoint(pos_x, pos_y, heading);
+                        //     pos_x+=x_diff/num_steps;
+                        //     pos_y+=y_diff/num_steps;
+                        // }
+                        ROS_INFO("heading - %f", sample_target[2]);
+                        traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
+                        // traj.addPoint(pos[0], pos[1], global_heading_th);
+                } // end for simulation steps
 
-        } // end for simulation steps
-      }
-    // // Visualize current pose
-    // // Needs to be placed before position update
-    // geometry_msgs::PoseStamped pose;
-    // pose.header.frame_id = "map";
-    // pose.header.stamp = ros::Time::now();
-    // pose.pose.position.x = pos[0];
-    // pose.pose.position.y = pos[1];
-    // pose.pose.position.z = 0;
-    // pose.pose.orientation = tf::createQuaternionMsgFromYaw(pos[2]);
-    // visualize_pose_.publish(pose);
+        // Visualize current pose
+        // Needs to be placed before position update
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "map";
+        pose.header.stamp = ros::Time::now();
+        pose.pose.position.x = pos[0];
+        pose.pose.position.y = pos[1];
+        pose.pose.position.z = 0;
+        pose.pose.orientation = tf::createQuaternionMsgFromYaw(pos[2]);
+        visualize_pose_.publish(pose);
 
-    // Visualize local trajectory pose goal
-    // Needs to be placed after heading update
-    geometry_msgs::PoseStamped trajpose;
-    trajpose.header.frame_id = "map";
-    trajpose.header.stamp = ros::Time::now();
-    trajpose.pose.position.x = pos[0];
-    trajpose.pose.position.y = pos[1];
-    trajpose.pose.position.z = 0;
-    trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(heading);
-    // trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(tt);
-    visualize_heading_.publish(trajpose);
+        // Visualize local trajectory pose goal
+        // Needs to be placed after heading update
+        geometry_msgs::PoseStamped trajpose;
+        trajpose.header.frame_id = "map";
+        trajpose.header.stamp = ros::Time::now();
+        trajpose.pose.position.x = pos[0];
+        trajpose.pose.position.y = pos[1];
+        trajpose.pose.position.z = 0;
+        trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(heading);
+        visualize_heading_.publish(trajpose);
 
-    // VisualiseTrajectoryGenerator(traj);
-    return num_steps > 0; // true if trajectory has at least one point
+        // VisualiseTrajectoryGenerator(traj);
+        return 1; // true if trajectory has at least one point
 }
 
 void UrsaTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){
-  double x; double y; double z;
-  for(unsigned int i=0; i<traj.getPointsSize(); i++){
-    geometry_msgs::PoseStamped pose;
-    traj.getPoint(i, x, y, z);
+    double x; double y; double z;
+    for(unsigned int i=0; i<traj.getPointsSize(); i++){
+        geometry_msgs::PoseStamped pose;
+        traj.getPoint(i, x, y, z);
 
-    pose.header.stamp = ros::Time::now();
-    pose.header.frame_id = "map";
-    pose.pose.position.x = x;
-    pose.pose.position.y = y;
-    pose.pose.position.z = 0.3;
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "map";
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        pose.pose.position.z = 0.3;
 
-    traj_gen_paths_.push_back(pose);
-  }
+        traj_gen_paths_.push_back(pose);
+    }
 
-  base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
+    base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
 }
 
 } /* namespace base_local_planner */

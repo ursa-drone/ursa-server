@@ -21,15 +21,18 @@ public:
 
   bool prepare() {return true;};
 
-  bool init(double penalty, std::vector<geometry_msgs::PoseStamped> global_plan);
+  bool init(double penalty, std::vector<geometry_msgs::PoseStamped> global_plan, tf::Stamped<tf::Pose> global_pose, double robot_radius);
 
   void setPenalty(double penalty) {
     penalty_ = penalty;
   }
+  double globalPlanHeadingAtRadius();
 
 private:
-  double penalty_;
-  std::vector<geometry_msgs::PoseStamped> global_plan_;
+    double penalty_;
+    tf::Stamped<tf::Pose> global_pose_;
+    std::vector<geometry_msgs::PoseStamped> global_plan_;
+    double robot_radius_;
 };
 
 } /* namespace ursa_local_planner */

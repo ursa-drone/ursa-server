@@ -141,6 +141,8 @@ public:
         base_local_planner::Trajectory& traj);
 
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
+  double headingGivenXandY(double x_diff, double y_diff);
+  double globalPlanHeadingAtRadius();
 
 protected:
 
