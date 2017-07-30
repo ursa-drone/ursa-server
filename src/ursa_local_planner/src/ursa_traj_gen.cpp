@@ -88,11 +88,26 @@ void UrsaTrajectoryGenerator::initialise(
     global_plan_ = global_plan;
     std::cout << "global_plan_[10]" << global_plan_[10] << std::endl;
 
-    // Set the only point as at the origin and heading towards the global plan at robot radius
+    // Set one sample param as the origin and heading towards the global plan at robot radius (to rotate)
     Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
     test_point[0] = pos_[0]; test_point[1] = pos_[1]; test_point[2] = globalPlanHeadingAtRadius();
     std::cout << "test_point[2]" << test_point[2] << std::endl;
     sample_params_.push_back(test_point);
+
+    // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (make sure to add the last point)
+    std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
+    for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
+        geometry_msgs::PoseStamped& w = *poseIt;
+        double x_diff = sample_params_.back()[0]-w.pose.position.x;
+        double y_diff = sample_params_.back()[1]-w.pose.position.y;
+        double distance_sq = x_diff*x_diff + y_diff*y_diff;
+            if (distance_sq>=0.01 || poseIt == global_plan.end()){
+                test_point[0] = w.pose.position.x;
+                test_point[1] = w.pose.position.y;
+                test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
+                sample_params_.push_back(test_point);
+            }
+        }
     }
 
 double UrsaTrajectoryGenerator::globalPlanHeadingAtRadius(){
