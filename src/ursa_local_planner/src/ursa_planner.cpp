@@ -218,13 +218,13 @@ namespace ursa_local_planner {
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
     Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf::getYaw(goal_pose.pose.orientation));
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
-    /*
-    generator_.initialise(pos,
-        vel,
-        goal,
-        &limits,
-        vsamples_);
-    generator_.generateTrajectory(pos, vel, vel_samples, traj);*/
+    
+    // generator_.initialise(pos,
+    //     vel,
+    //     goal,
+    //     &limits,
+    //     vsamples_);
+    // generator_.generateTrajectory(pos, vel, vel_samples, traj);
     double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
     //if the trajectory is a legal one... the check passes
     if(cost >= 0) {
@@ -250,7 +250,7 @@ namespace ursa_local_planner {
 
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
-    goal_costs_.init(1,global_plan_, global_pose, robot_radius_);
+    goal_costs_.init(1,global_plan_, global_pose, robot_radius_, result_traj_);
     goal_front_costs_.init(1, global_pose);
 
     // alignment costs
@@ -309,11 +309,19 @@ namespace ursa_local_planner {
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
     // prepare cost functions and generators for this run
-    generator_.initialise(pos,
+    generator_.loadPreviousLocalTraj(result_traj_);  // !!! important, ensure local traj is loaded before initialised
+    goal_costs_.loadPreviousLocalTraj(result_traj_); // !!! if its not, previous local trajectory will not be added in time
+    generator_.initialise(
+        pos,
         vel,
         global_plan_,
         &limits,
         vsamples_);
+    // double x,y,th;
+    // std::cout << "x" << x << "y" << y << "th" << th << std::endl;
+    // result_traj_.getEndpoint(x, y, th);
+    std::cout << "--------" << std::endl;
+
 
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples

@@ -47,6 +47,11 @@
 
 namespace ursa_local_planner {
 
+inline bool logically_equal(double a, double b, double error_factor=1.0)
+{
+  return std::abs(a-b)<1e-4;
+}
+
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
     const Eigen::Vector3f& vel,
@@ -60,6 +65,9 @@ void UrsaTrajectoryGenerator::initialise(
     sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
 }
 
+void UrsaTrajectoryGenerator::loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj){
+    previous_result_traj_ = previous_result_traj;
+}
 
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
@@ -68,46 +76,62 @@ void UrsaTrajectoryGenerator::initialise(
     base_local_planner::LocalPlannerLimits* limits,
     const Eigen::Vector3f& vsamples,
     bool discretize_by_time) {
-    /*
-     * We actually generate all path sample vectors here, from which to generate trajectories later on
-     */
+        /*
+         * We actually generate all path sample vectors here, from which to generate trajectories later on
+         */
 
-    // Setup node handler and publishers
-    ros::NodeHandle private_nh("~/");
-    ros::NodeHandle nh;
-    visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
-    visualize_pose_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_pose", 1);
-    visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
-    private_nh.getParam("global_costmap/robot_radius", robot_radius_);
+        // Setup node handler and publishers
+        ros::NodeHandle private_nh("~/");
+        ros::NodeHandle nh;
+        visualize_traj_gen_pub_ = private_nh.advertise<nav_msgs::Path>("visualize_traj_gen", 1);
+        visualize_pose_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_pose", 1);
+        visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
+        private_nh.getParam("global_costmap/robot_radius", robot_radius_);
 
-    // Clear stuff and set up global variables
-    traj_gen_paths_.clear();
-    sample_params_.clear();
-    next_sample_index_ = 0;
-    pos_ = pos;
-    global_plan_ = global_plan;
-    std::cout << "global_plan_[10]" << global_plan_[10] << std::endl;
+        // Clear stuff and set up global variables
+        traj_gen_paths_.clear();
+        sample_params_.clear();
+        next_sample_index_ = 0;
+        pos_ = pos;
+        global_plan_ = global_plan;
 
-    // Set one sample param as the origin and heading towards the global plan at robot radius (to rotate)
-    Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
-    test_point[0] = pos_[0]; test_point[1] = pos_[1]; test_point[2] = globalPlanHeadingAtRadius();
-    std::cout << "test_point[2]" << test_point[2] << std::endl;
-    sample_params_.push_back(test_point);
+        // Set one sample param as the origin and heading towards the global plan at robot radius (to rotate)
+        Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
+        test_point[0] = pos_[0];
+        test_point[1] = pos_[1];
+        test_point[2] = globalPlanHeadingAtRadius();
+        sample_params_.push_back(test_point);
 
-    // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (make sure to add the last point)
-    std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
-    for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
-        geometry_msgs::PoseStamped& w = *poseIt;
-        double x_diff = sample_params_.back()[0]-w.pose.position.x;
-        double y_diff = sample_params_.back()[1]-w.pose.position.y;
-        double distance_sq = x_diff*x_diff + y_diff*y_diff;
-            if (distance_sq>=0.01 || poseIt == global_plan.end()){
+        // Add in the current local plan
+        if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
+            double x, y, th;
+            previous_result_traj_.getEndpoint(x, y, th);
+            test_point[0] = x;
+            test_point[1] = y;
+            test_point[2] = th;
+            sample_params_.push_back(test_point);
+        }
+
+        // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (doesn't matter if last point included)
+        std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
+        for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
+            geometry_msgs::PoseStamped& w = *poseIt;
+            double x_diff       = sample_params_.back()[0]-w.pose.position.x;
+            double y_diff       = sample_params_.back()[1]-w.pose.position.y;
+            double distance_sq  = x_diff*x_diff + y_diff*y_diff;
+            if (distance_sq>=0.01){
                 test_point[0] = w.pose.position.x;
                 test_point[1] = w.pose.position.y;
                 test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
                 sample_params_.push_back(test_point);
+                }
             }
-        }
+
+        // Add end point with the goal trajectory heading
+        test_point[0] = global_plan_.back().pose.position.x;
+        test_point[1] = global_plan_.back().pose.position.y;
+        test_point[2] = tf::getYaw(global_plan_.back().pose.orientation);
+        sample_params_.push_back(test_point);
     }
 
 double UrsaTrajectoryGenerator::globalPlanHeadingAtRadius(){
@@ -123,7 +147,7 @@ double UrsaTrajectoryGenerator::globalPlanHeadingAtRadius(){
                 global_heading_x = global_plan_[i].pose.position.x;
                 global_heading_y =  global_plan_[i].pose.position.y;
             }
-    std::cout << "**i" << i << std::endl;
+    // std::cout << "**i" << i << std::endl;
     return tf::getYaw(global_plan_[i].pose.orientation);
 }
 
@@ -193,75 +217,57 @@ double UrsaTrajectoryGenerator::headingGivenXandY(double x_diff, double y_diff){
     return heading;
 }
 
-
 /**
  * @param pos current position of robot
  * @param vel unused
  * @param sample_target point on the global plan to generate trajectory
  */
 bool UrsaTrajectoryGenerator::generateTrajectory(
-        Eigen::Vector3f pos,
-        Eigen::Vector3f vel,
-        Eigen::Vector3f sample_target,
-        base_local_planner::Trajectory& traj) {
+    Eigen::Vector3f pos,
+    Eigen::Vector3f vel,
+    Eigen::Vector3f sample_target,
+    base_local_planner::Trajectory& traj) {
 
-        double eps = 1e-4;
-        double heading;
-        //traj.cost_   = -1.0; // placed here in case we return early
-        //trajectory might be reused so we'll make sure to reset it
-        traj.resetPoints();
+    double eps = 1e-4;
+    double heading;
 
-        // If goal is inside robot radius then the local plan orientation should be = goal orientation
-        double goal_x = global_plan_.back().pose.position.x;
-        double goal_y = global_plan_.back().pose.position.y;
-        if (((pos[0] - robot_radius_*1.5) <= goal_x) &&
-                (goal_x < (pos[0] + robot_radius_*1.5))  &&
-                ((pos[1] - robot_radius_*1.5) <= goal_y) &&
-                (goal_y < (pos[1] + robot_radius_*1.5))) {
-                        heading = tf::getYaw(global_plan_.back().pose.orientation);
-                        traj.addPoint(goal_x, goal_y, heading);
-                        ROS_INFO("#### 1 ");
+    traj.resetPoints();
+    traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
+
+    double previous_traj_x, previous_traj_y, previous_traj_th;
+    if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
+
+        previous_result_traj_.getEndpoint(previous_traj_x, previous_traj_y, previous_traj_th);
+
+        if (logically_equal(sample_target[0], previous_traj_x) && 
+        logically_equal(sample_target[1], previous_traj_y) && 
+        logically_equal(sample_target[2], previous_traj_th)) {
+            std::cout << "#####previous_traj_x - " << previous_traj_x << "previous_traj_y - " << previous_traj_y << "previous_traj_th - " << previous_traj_th << std::endl;
+            }
         }
-        else{
-                        ROS_INFO("#### 3 ");
-                        double pos_x  = pos[0];
-                        double pos_y  = pos[1];
-                        //simulate the trajectory
-                        // for (int i = 0; i < num_steps; ++i) {
-                        //     //add the point to the trajectory
-                        //     traj.addPoint(pos_x, pos_y, heading);
-                        //     pos_x+=x_diff/num_steps;
-                        //     pos_y+=y_diff/num_steps;
-                        // }
-                        ROS_INFO("heading - %f", sample_target[2]);
-                        traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
-                        // traj.addPoint(pos[0], pos[1], global_heading_th);
-                } // end for simulation steps
 
-        // Visualize current pose
-        // Needs to be placed before position update
-        geometry_msgs::PoseStamped pose;
-        pose.header.frame_id = "map";
-        pose.header.stamp = ros::Time::now();
-        pose.pose.position.x = pos[0];
-        pose.pose.position.y = pos[1];
-        pose.pose.position.z = 0;
-        pose.pose.orientation = tf::createQuaternionMsgFromYaw(pos[2]);
-        visualize_pose_.publish(pose);
+    // Visualize current pose
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "map";
+    pose.header.stamp = ros::Time::now();
+    pose.pose.position.x = pos[0];
+    pose.pose.position.y = pos[1];
+    pose.pose.position.z = 0;
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(pos[2]);
+    visualize_pose_.publish(pose);
 
-        // Visualize local trajectory pose goal
-        // Needs to be placed after heading update
-        geometry_msgs::PoseStamped trajpose;
-        trajpose.header.frame_id = "map";
-        trajpose.header.stamp = ros::Time::now();
-        trajpose.pose.position.x = pos[0];
-        trajpose.pose.position.y = pos[1];
-        trajpose.pose.position.z = 0;
-        trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(heading);
-        visualize_heading_.publish(trajpose);
+    // Visualize local trajectory pose goal
+    geometry_msgs::PoseStamped trajpose;
+    trajpose.header.frame_id = "map";
+    trajpose.header.stamp = ros::Time::now();
+    trajpose.pose.position.x = pos[0];
+    trajpose.pose.position.y = pos[1];
+    trajpose.pose.position.z = 0;
+    trajpose.pose.orientation = tf::createQuaternionMsgFromYaw(sample_target[2]);
+    visualize_heading_.publish(trajpose);
 
-        // VisualiseTrajectoryGenerator(traj);
-        return 1; // true if trajectory has at least one point
+    VisualiseTrajectoryGenerator(traj);
+    return 1;
 }
 
 void UrsaTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj){
