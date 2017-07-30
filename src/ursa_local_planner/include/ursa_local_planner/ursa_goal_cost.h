@@ -31,15 +31,13 @@ public:
     penalty_ = penalty;
   }
   double globalPlanHeadingAtRadius();
-  bool checkIfInsideRadius(double x, double y);
-  void loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj);
+  bool checkIfInsideRadius(double x, double y, double multiplier);
 
 private:
     double penalty_;
     tf::Stamped<tf::Pose> global_pose_;
     std::vector<geometry_msgs::PoseStamped> global_plan_;
     double robot_radius_;
-    base_local_planner::Trajectory previous_result_traj_;
 };
 
 } /* namespace ursa_local_planner */

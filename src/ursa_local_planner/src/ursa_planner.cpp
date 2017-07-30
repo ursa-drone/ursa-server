@@ -309,18 +309,12 @@ namespace ursa_local_planner {
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
     // prepare cost functions and generators for this run
-    generator_.loadPreviousLocalTraj(result_traj_);  // !!! important, ensure local traj is loaded before initialised
-    goal_costs_.loadPreviousLocalTraj(result_traj_); // !!! if its not, previous local trajectory will not be added in time
     generator_.initialise(
         pos,
         vel,
         global_plan_,
         &limits,
         vsamples_);
-    // double x,y,th;
-    // std::cout << "x" << x << "y" << y << "th" << th << std::endl;
-    // result_traj_.getEndpoint(x, y, th);
-    std::cout << "--------" << std::endl;
 
 
     result_traj_.cost_ = -7;

@@ -65,10 +65,6 @@ void UrsaTrajectoryGenerator::initialise(
     sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
 }
 
-void UrsaTrajectoryGenerator::loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj){
-    previous_result_traj_ = previous_result_traj;
-}
-
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
     const Eigen::Vector3f& vel,
@@ -101,16 +97,6 @@ void UrsaTrajectoryGenerator::initialise(
         test_point[1] = pos_[1];
         test_point[2] = globalPlanHeadingAtRadius();
         sample_params_.push_back(test_point);
-
-        // Add in the current local plan
-        if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
-            double x, y, th;
-            previous_result_traj_.getEndpoint(x, y, th);
-            test_point[0] = x;
-            test_point[1] = y;
-            test_point[2] = th;
-            sample_params_.push_back(test_point);
-        }
 
         // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (doesn't matter if last point included)
         std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
@@ -233,18 +219,6 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
 
     traj.resetPoints();
     traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
-
-    double previous_traj_x, previous_traj_y, previous_traj_th;
-    if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
-
-        previous_result_traj_.getEndpoint(previous_traj_x, previous_traj_y, previous_traj_th);
-
-        if (logically_equal(sample_target[0], previous_traj_x) && 
-        logically_equal(sample_target[1], previous_traj_y) && 
-        logically_equal(sample_target[2], previous_traj_th)) {
-            std::cout << "#####previous_traj_x - " << previous_traj_x << "previous_traj_y - " << previous_traj_y << "previous_traj_th - " << previous_traj_th << std::endl;
-            }
-        }
 
     // Visualize current pose
     geometry_msgs::PoseStamped pose;
