@@ -218,7 +218,29 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     double heading;
 
     traj.resetPoints();
-    traj.addPoint(sample_target[0],sample_target[1],sample_target[2]);
+
+    // Generate a line between current position and sample target
+    // Make the points separated by 10cm
+    int num_steps; 
+    double x_diff = sample_target[0]-pos[0];
+    double y_diff = sample_target[1]-pos[1];
+    double distance_sq = x_diff*x_diff+y_diff*y_diff;
+    double distance = sqrt(distance_sq);
+    double x = pos[0];
+    double y = pos[1];
+    num_steps = distance/0.1; //Parameterise this - currently 10cm
+    if (num_steps==0) num_steps=1;
+
+    //simulate the trajectory
+    for (int i = 0; i < num_steps; i++) {
+
+        //add the point to the trajectory
+        traj.addPoint(x, y, sample_target[2]);
+        
+        x += x_diff/num_steps;
+        y += y_diff/num_steps;
+    }
+    traj.addPoint(sample_target[0], sample_target[1], sample_target[2]);    
 
     // Visualize current pose
     geometry_msgs::PoseStamped pose;

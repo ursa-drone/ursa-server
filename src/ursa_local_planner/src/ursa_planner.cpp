@@ -69,7 +69,7 @@ namespace ursa_local_planner {
 
     gdist_scale_ = config.goal_distance_bias;
     goal_costs_.setScale(resolution * gdist_scale_ * 0.5);
-    goal_front_costs_.setScale(resolution * gdist_scale_ * 0.5);
+    // goal_front_costs_.setScale(resolution * gdist_scale_ * 0.5);
 
     occdist_scale_ = config.occdist_scale;
     obstacle_costs_.setScale(resolution * occdist_scale_);
@@ -165,10 +165,10 @@ namespace ursa_local_planner {
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
-    critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+    critics.push_back(&
+    // critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
-    //critics.push_back(&path_costs_); // prefers trajectories on global path
+    critics.push_back(&path_costs_); // prefers trajectories on global path
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
 
     // trajectory generators
@@ -251,7 +251,7 @@ namespace ursa_local_planner {
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
     goal_costs_.init(1,global_plan_, global_pose, robot_radius_, result_traj_);
-    goal_front_costs_.init(1, global_pose);
+    // goal_front_costs_.init(1, global_pose);
 
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();

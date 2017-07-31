@@ -29,3 +29,7 @@ UrsaPlannerROS:
 
   # oscillation prevention
   oscillation_reset_dist: 0.05
+
+  # set trajectory scoring parameters
+  path_distance_bias: 100
+  max_scaling_factor: 10
