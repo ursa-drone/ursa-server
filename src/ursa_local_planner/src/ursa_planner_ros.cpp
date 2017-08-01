@@ -45,6 +45,9 @@
 
 #include <base_local_planner/goal_functions.h>
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseArray.h>
+#include <iostream>
+using namespace std;
 
 //register this planner as a BaseLocalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(ursa_local_planner::UrsaPlannerROS, nav_core::BaseLocalPlanner)
@@ -100,6 +103,8 @@ namespace ursa_local_planner {
       ros::NodeHandle private_nh("~/" + name);
       g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
+      l_plan_pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("local_plan_pose_array", 1);
+      g_plan_pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("global_plan_pose_array", 1);
       tf_ = tf;
       costmap_ros_ = costmap_ros;
       costmap_ros_->getRobotPose(current_pose_);
@@ -159,11 +164,29 @@ namespace ursa_local_planner {
 
   void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, l_plan_pub_);
+
+    // Visualize pose at each point along local plan
+    geometry_msgs::PoseArray local_plan_pose_array;
+    local_plan_pose_array.header.stamp = path[0].header.stamp;
+    local_plan_pose_array.header.frame_id = path[0].header.frame_id;
+    for (int i=0; i<path.size(); i++){
+        local_plan_pose_array.poses.push_back(path[i].pose);
+    }
+    l_plan_pose_array_pub_.publish(local_plan_pose_array);
   }
 
 
   void UrsaPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, g_plan_pub_);
+
+    // Visualize pose at each point along local plan
+    geometry_msgs::PoseArray global_plan_pose_array;
+    global_plan_pose_array.header.stamp = path[0].header.stamp;
+    global_plan_pose_array.header.frame_id = path[0].header.frame_id;
+    for (int i=0; i<path.size(); i++){
+        global_plan_pose_array.poses.push_back(path[i].pose);
+    }
+    g_plan_pose_array_pub_.publish(global_plan_pose_array);
   }
 
   UrsaPlannerROS::~UrsaPlannerROS(){

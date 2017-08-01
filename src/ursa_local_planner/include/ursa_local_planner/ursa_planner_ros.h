@@ -133,7 +133,7 @@ namespace ursa_local_planner {
       tf::TransformListener* tf_; ///< @brief Used for transforming point clouds
 
       // for visualisation, publishers of global and local plan
-      ros::Publisher g_plan_pub_, l_plan_pub_;
+      ros::Publisher g_plan_pub_, l_plan_pub_, l_plan_pose_array_pub_, g_plan_pose_array_pub_;
 
       base_local_planner::LocalPlannerUtil planner_util_;
 

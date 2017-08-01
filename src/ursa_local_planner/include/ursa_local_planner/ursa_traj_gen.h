@@ -42,6 +42,7 @@
 #include <base_local_planner/local_planner_limits.h>
 #include <Eigen/Core>
 #include <base_local_planner/goal_functions.h>
+#include <tf/transform_datatypes.h>
 
 namespace ursa_local_planner {
 
@@ -100,7 +101,7 @@ public:
       std::vector<geometry_msgs::PoseStamped> global_plan,
       base_local_planner::LocalPlannerLimits* limits,
       const Eigen::Vector3f& vsamples,
-      bool discretize_by_time = false);
+      bool discretize_by_time=false);
 
   /**
    * This function is to be called only when parameters change
@@ -140,6 +141,8 @@ public:
         base_local_planner::Trajectory& traj);
 
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
+  double headingGivenXandY(double x_diff, double y_diff);
+  double globalPlanHeadingAtRadius();
 
 protected:
 
@@ -147,6 +150,8 @@ protected:
   // to store sample params of each sample between init and generation
   // Sample params are x,y,yaw components of samples on goal path
   std::vector<Eigen::Vector3f> sample_params_;
+  std::vector<Eigen::Vector3f> temp_sample_params_;
+  std::vector<Eigen::Vector3f> prev_sample_params_;
   base_local_planner::LocalPlannerLimits* limits_;
   Eigen::Vector3f pos_;
   Eigen::Vector3f vel_;
@@ -161,6 +166,12 @@ protected:
 
   // Publisher and data for traj gen visualizer
   ros::Publisher visualize_traj_gen_pub_;
+  ros::Publisher visualize_pose_;
+  ros::Publisher visualize_heading_;
+
+  double robot_radius_;
+  std::vector<geometry_msgs::PoseStamped> global_plan_;
+
   std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
 };
 

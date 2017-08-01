@@ -69,7 +69,7 @@ namespace ursa_local_planner {
 
     gdist_scale_ = config.goal_distance_bias;
     goal_costs_.setScale(resolution * gdist_scale_ * 0.5);
-    goal_front_costs_.setScale(resolution * gdist_scale_ * 0.5);
+    // goal_front_costs_.setScale(resolution * gdist_scale_ * 0.5);
 
     occdist_scale_ = config.occdist_scale;
     obstacle_costs_.setScale(resolution * occdist_scale_);
@@ -77,7 +77,7 @@ namespace ursa_local_planner {
     stop_time_buffer_ = config.stop_time_buffer;
     oscillation_costs_.setOscillationResetDist(config.oscillation_reset_dist, config.oscillation_reset_angle);
     forward_point_distance_ = config.forward_point_distance;
-    goal_front_costs_.setXShift(forward_point_distance_);
+    // goal_front_costs_.setXShift(forward_point_distance_);
     alignment_costs_.setXShift(forward_point_distance_);
  
     // obstacle costs can vary due to scaling footprint feature
@@ -117,12 +117,12 @@ namespace ursa_local_planner {
       planner_util_(planner_util),
       obstacle_costs_(planner_util->getCostmap()),
       path_costs_(planner_util->getCostmap()),
-      goal_front_costs_(planner_util->getCostmap(), 0.0, 0.0, true),
       alignment_costs_(planner_util->getCostmap())
   {
     ros::NodeHandle private_nh("~/" + name);
+    private_nh.getParam("/move_base/global_costmap/robot_radius", robot_radius_);
 
-    goal_front_costs_.setStopOnFailure( false );
+    // goal_front_costs_.setStopOnFailure( false );
     alignment_costs_.setStopOnFailure( false );
 
     //Assuming this planner is being run within the navigation stack, we can
@@ -165,10 +165,10 @@ namespace ursa_local_planner {
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
-    critics.push_back(&obstacle_costs_); // discards trajectories that move into obstacles
-    //critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
+    critics.push_back(&
+    // critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
-    //critics.push_back(&path_costs_); // prefers trajectories on global path
+    critics.push_back(&path_costs_); // prefers trajectories on global path
     critics.push_back(&goal_costs_); // prefers trajectories that go towards (local) goal, based on wave propagation
 
     // trajectory generators
@@ -218,13 +218,13 @@ namespace ursa_local_planner {
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
     Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf::getYaw(goal_pose.pose.orientation));
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
-    /*
-    generator_.initialise(pos,
-        vel,
-        goal,
-        &limits,
-        vsamples_);
-    generator_.generateTrajectory(pos, vel, vel_samples, traj);*/
+    
+    // generator_.initialise(pos,
+    //     vel,
+    //     goal,
+    //     &limits,
+    //     vsamples_);
+    // generator_.generateTrajectory(pos, vel, vel_samples, traj);
     double cost = scored_sampling_planner_.scoreTrajectory(traj, -1);
     //if the trajectory is a legal one... the check passes
     if(cost >= 0) {
@@ -250,7 +250,8 @@ namespace ursa_local_planner {
 
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
-    goal_costs_.init(1,global_plan_);
+    goal_costs_.init(1,global_plan_, global_pose, robot_radius_, result_traj_);
+    // goal_front_costs_.init(1, global_pose);
 
     // alignment costs
     geometry_msgs::PoseStamped goal_pose = global_plan_.back();
@@ -272,7 +273,7 @@ namespace ursa_local_planner {
     front_global_plan.back().pose.position.y = front_global_plan.back().pose.position.y + forward_point_distance_ *
       sin(angle_to_goal);
 
-    goal_front_costs_.setTargetPoses(front_global_plan);
+    // goal_front_costs_.setTargetPoses(front_global_plan);
     
     // keeping the nose on the path
     if (sq_dist > forward_point_distance_ * forward_point_distance_ * cheat_factor_) {
@@ -308,11 +309,13 @@ namespace ursa_local_planner {
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
     // prepare cost functions and generators for this run
-    generator_.initialise(pos,
+    generator_.initialise(
+        pos,
         vel,
         global_plan_,
         &limits,
         vsamples_);
+
 
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples

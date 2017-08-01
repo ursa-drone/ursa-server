@@ -12,11 +12,16 @@ import nav_msgs.msg
 import curses
 import math
 import PyKDL
+import nav_msgs.msg
 
 pose = geometry_msgs.msg.PoseStamped()
 setpoint = geometry_msgs.msg.TransformStamped()
 tf_buffer = tf2_ros.Buffer(rospy.Duration(10.0)) #tf buffer length
 tf_listener = tf2_ros.TransformListener(tf_buffer)
+robot_radius = rospy.get_param("move_base/global_costmap/robot_radius")
+global_plan_endpoint = geometry_msgs.msg.PoseStamped()
+current_pose = geometry_msgs.msg.PoseStamped()
+
 
 def rangeCB(data):
     global tf_buffer
@@ -49,13 +54,36 @@ def rangeCB(data):
         t.transform.translation.z = data.range
     br.sendTransform(t)
 
+def odometryCB(data):
+    global current_pose
+    current_pose.header = data.header
+    current_pose.pose = data.pose.pose
+
+def setGlobalPlanCB(data):
+    global global_plan_endpoint
+    global_plan_endpoint = data
+    # print "global_plan_endpoint: ", global_plan_endpoint
+
 def waypointCB(data):
     global tf_buffer
+    rate = rospy.Rate(20) # 20hz
     transform = tf_buffer.lookup_transform("map",
                                        data.header.frame_id, #source frame
                                        rospy.Time(0), #get the tf at first available time
                                        rospy.Duration(1.0)) #wait for 1 second
+
+    # If goal is inside robot foot print then setpoint as goal opposed to local plan
+    # Commented out in response to issue #2.  Set local planner orientation in trajectory generator when inside robot radius.
+    # if (((current_pose.pose.position.x - robot_radius) < global_plan_endpoint.pose.position.x) and
+    #     (global_plan_endpoint.pose.position.x < (current_pose.pose.position.x + robot_radius)) and
+    #     ((current_pose.pose.position.y - robot_radius) < global_plan_endpoint.pose.position.y) and
+    #     (global_plan_endpoint.pose.position.y < (current_pose.pose.position.y + robot_radius))):
+    #     mapPose = global_plan_endpoint
+    # else:
+    #     mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+
     mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+
     global setpoint
     br=tf2_ros.TransformBroadcaster()
     setpoint.header.frame_id = "map"
@@ -68,7 +96,6 @@ def waypointCB(data):
     setpoint.transform.rotation.z = mapPose.pose.orientation.z
     setpoint.transform.rotation.w = mapPose.pose.orientation.w
     br.sendTransform(setpoint)
-    rate = rospy.Rate(20) # 20hz
     rate.sleep()
 
 def start():
@@ -96,7 +123,9 @@ def start():
     waypoints[0].y_long=0
     waypoints[0].z_alt=2
 
-    goal_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/local_plan', nav_msgs.msg.Path, waypointCB, queue_size=10)
+    odom_sub = rospy.Subscriber('mavros/local_position/odom',nav_msgs.msg.Odometry,odometryCB)
+    local_plan_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/local_plan', nav_msgs.msg.Path, waypointCB, queue_size=10)
+    simple_goal_sub = rospy.Subscriber('move_base_simple/goal', geometry_msgs.msg.PoseStamped, setGlobalPlanCB, queue_size=10)
     range_sub = rospy.Subscriber('/range', sensor_msgs.msg.Range, rangeCB, queue_size=10)
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)  
     arm = rospy.ServiceProxy('/mavros/cmd/arming', mavros_msgs.srv.CommandBool)  
