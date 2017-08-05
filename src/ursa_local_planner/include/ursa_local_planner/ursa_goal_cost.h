@@ -13,7 +13,6 @@ namespace ursa_local_planner {
 
 class UrsaGoalCostFunction: public base_local_planner::TrajectoryCostFunction {
 public:
-
   UrsaGoalCostFunction() {}
   ~UrsaGoalCostFunction() {}
 
@@ -32,12 +31,14 @@ public:
   }
   double globalPlanHeadingAtRadius();
   bool checkIfInsideRadius(double x, double y, double multiplier);
+  bool reconfigure(double ucfg);
 
 private:
     double penalty_;
     tf::Stamped<tf::Pose> global_pose_;
     std::vector<geometry_msgs::PoseStamped> global_plan_;
     double robot_radius_;
+    double ucfg_;
 };
 
 } /* namespace ursa_local_planner */

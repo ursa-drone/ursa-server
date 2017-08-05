@@ -229,18 +229,15 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     double x = pos[0];
     double y = pos[1];
     num_steps = distance/0.1; //Parameterise this - currently 10cm
-    if (num_steps==0) num_steps=1;
 
     //simulate the trajectory
     for (int i = 0; i < num_steps; i++) {
-
         //add the point to the trajectory
         traj.addPoint(x, y, sample_target[2]);
-        
         x += x_diff/num_steps;
         y += y_diff/num_steps;
     }
-    traj.addPoint(sample_target[0], sample_target[1], sample_target[2]);    
+    traj.addPoint(sample_target[0], sample_target[1], sample_target[2]);
 
     // Visualize current pose
     geometry_msgs::PoseStamped pose;

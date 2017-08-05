@@ -61,6 +61,8 @@ namespace ursa_local_planner {
         config.use_dwa,
         sim_period_);
 
+    goal_costs_.reconfigure(config.ucfg);
+
     double resolution = planner_util_->getCostmap()->getResolution();
     pdist_scale_ = config.path_distance_bias;
     // pdistscale used for both path and alignment, set  forward_point_distance to zero to discard alignment

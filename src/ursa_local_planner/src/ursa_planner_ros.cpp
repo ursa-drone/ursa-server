@@ -63,7 +63,7 @@ namespace ursa_local_planner {
         default_config_ = config;
         setup_ = true;
       }
-
+      ROS_INFO("config.ucfg -- %f", config.ucfg);
       // update generic local planner params
       base_local_planner::LocalPlannerLimits limits;
       limits.max_trans_vel = config.max_trans_vel;

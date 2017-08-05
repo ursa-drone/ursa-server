@@ -56,6 +56,7 @@
 #include <base_local_planner/odometry_helper_ros.h>
 
 #include <ursa_local_planner/ursa_planner.h>
+#include <ursa_local_planner/ursa_goal_cost.h>
 
 namespace ursa_local_planner {
   /**
