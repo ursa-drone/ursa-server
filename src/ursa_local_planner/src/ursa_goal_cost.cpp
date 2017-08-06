@@ -118,19 +118,8 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
         x_diff = x_end - current_pose_x;
         y_diff = y_end - current_pose_y;
         distance_sq = x_diff*x_diff + y_diff*y_diff;
-        if (distance_sq <= DBL_EPSILON){
-            // return 1 + global_plan_.size(); // +1 to ensure global plan end point is always favoured
-            // ROS_INFO("scoreTrajectory cost -- %d", MAX_COST);
-            // return MAX_COST;
-            return 2;
-            }
-        // smallest score to points further away
-        else{
-            // return 1 + 1/distance_sq;       // +1 to ensure global plan end point is always favoured
-            // ROS_INFO("scoreTrajectory cost -- %f", 253*exp(-1 * ucfg_ * distance_sq));
-            // return MAX_COST*exp(-1 * ucfg_ * distance_sq);
-            return 2;
-            }
+        double distance = sqrt(distance_sq);
+        return exp(-log(252)/1.4 * distance) * 252;
         }
     }
 }

@@ -105,7 +105,8 @@ void UrsaTrajectoryGenerator::initialise(
             double x_diff       = sample_params_.back()[0]-w.pose.position.x;
             double y_diff       = sample_params_.back()[1]-w.pose.position.y;
             double distance_sq  = x_diff*x_diff + y_diff*y_diff;
-            if (distance_sq>=0.01){
+            double distance     = sqrt(distance_sq);
+            if (distance>=0.1){
                 test_point[0] = w.pose.position.x;
                 test_point[1] = w.pose.position.y;
                 test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
@@ -228,14 +229,14 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     double distance = sqrt(distance_sq);
     double x = pos[0];
     double y = pos[1];
-    num_steps = distance/0.1; //Parameterise this - currently 10cm
+    num_steps = distance/0.5; //Parameterise this - currently 10cm
 
     //simulate the trajectory
     for (int i = 0; i < num_steps; i++) {
         //add the point to the trajectory
-        traj.addPoint(x, y, sample_target[2]);
         x += x_diff/num_steps;
         y += y_diff/num_steps;
+        traj.addPoint(x, y, sample_target[2]);
     }
     traj.addPoint(sample_target[0], sample_target[1], sample_target[2]);
 
