@@ -88,11 +88,11 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
         logically_equal(y_end, goal_y)          &&
         logically_equal(th_end, goal_th)) {
         if (checkIfInsideRadius(goal_x, goal_y, 2)) { // but only give low cost if nearby
-            ROS_INFO("scoreTrajectory cost -- %f", 0.);
+            // ROS_INFO("scoreTrajectory cost -- %f", 0.);
             return 0;
         }
         else{
-            ROS_INFO("scoreTrajectory cost -- %d", MAX_COST);
+            // ROS_INFO("scoreTrajectory cost -- %d", MAX_COST);
             return MAX_COST; // otherwise give max
         }
     }
@@ -103,12 +103,12 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
         if (logically_equal(x_end, current_pose_x) && 
             logically_equal(y_end, current_pose_y) && 
             logically_equal(th_end, global_plan_at_radius_th)) {
-                ROS_INFO("scoreTrajectory cost -- %f", 1.);
+                // ROS_INFO("scoreTrajectory cost -- %f", 1.);
                 return 1;
             }
         // higher score to all others
         else{
-                ROS_INFO("scoreTrajectory cost -- %f", 2.);
+                // ROS_INFO("scoreTrajectory cost -- %f", 2.);
                 return 2;
             }
         }
@@ -120,14 +120,16 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
         distance_sq = x_diff*x_diff + y_diff*y_diff;
         if (distance_sq <= DBL_EPSILON){
             // return 1 + global_plan_.size(); // +1 to ensure global plan end point is always favoured
-            ROS_INFO("scoreTrajectory cost -- %d", MAX_COST);
-            return MAX_COST;
+            // ROS_INFO("scoreTrajectory cost -- %d", MAX_COST);
+            // return MAX_COST;
+            return 2;
             }
         // smallest score to points further away
         else{
             // return 1 + 1/distance_sq;       // +1 to ensure global plan end point is always favoured
-            ROS_INFO("scoreTrajectory cost -- %f", 253*exp(-1 * ucfg_ * distance_sq));
-            return MAX_COST*exp(-1 * ucfg_ * distance_sq);
+            // ROS_INFO("scoreTrajectory cost -- %f", 253*exp(-1 * ucfg_ * distance_sq));
+            // return MAX_COST*exp(-1 * ucfg_ * distance_sq);
+            return 2;
             }
         }
     }

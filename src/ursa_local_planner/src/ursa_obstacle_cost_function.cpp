@@ -45,7 +45,7 @@ namespace ursa_local_planner {
 UrsaObstacleCostFunction::UrsaObstacleCostFunction(costmap_2d::Costmap2D* costmap) 
     : costmap_(costmap), sum_scores_(false) {
   if (costmap != NULL) {
-    world_model_ = new base_local_planner::CostmapModel(*costmap_);
+    world_model_ = new ursa_local_planner::UrsaCostmapModel(*costmap_);
   }
 }
 
@@ -90,12 +90,16 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
         return f_cost;
     }
 
-    if(sum_scores_)
-        cost +=  f_cost;
-    else
-        cost = f_cost;
+    // if(sum_scores_)
+    //     cost +=  f_cost;
+    // else
+    //     cost = f_cost;
+    if (f_cost > cost){
+      cost = f_cost;      
+    }
+    
   }
-  ROS_INFO("cost -- %f", cost); // returns cost of last point on trajectory
+  ROS_INFO("cost1 -- %f", cost); // returns cost of last point on trajectory
   return cost;
 }
 

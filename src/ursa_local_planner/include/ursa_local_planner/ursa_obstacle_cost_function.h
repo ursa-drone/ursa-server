@@ -40,7 +40,7 @@
 
 #include <base_local_planner/trajectory_cost_function.h>
 
-#include <base_local_planner/costmap_model.h>
+#include <ursa_local_planner/ursa_costmap_model.h>
 #include <costmap_2d/costmap_2d.h>
 
 namespace ursa_local_planner {

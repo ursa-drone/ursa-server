@@ -5,14 +5,25 @@ import matplotlib.pyplot as plt
 import time
 import nav_msgs.msg
 from std_msgs.msg import String
-from multiprocessing import Process
+from multiprocessing import Process, Array
 
-heatmap_data = None;
+import ctypes as c
+import multiprocessing as mp
+
+arr = Array('d', 120*120)
 
 def CB(data):
-    global heatmap_data;
-    heatmap_data = data;
-    print heatmap_data
+    if len(data.data) < 120*120:
+        arr[:] = np.random.rand(120*120)
+    else:
+        arr[:] = np.array(data.data)
+
+class Formatter(object):
+    def __init__(self, im):
+        self.im = im
+    def __call__(self, x, y):
+        z = self.im.get_array()[int(y), int(x)]
+        return 'x={:.01f}, y={:.01f}, z={:.01f}'.format(x, y, z)
 
 class ClickToDrawPoints(object):
     def __init__(self, ax):
@@ -24,9 +35,8 @@ class ClickToDrawPoints(object):
     def on_click(self, event):
         if event.inaxes is None:
             return
-        print heatmap_data
-        im = self.ax.imshow(np.random.random((120, 120)), interpolation='None')
-        print im.get_array()[0, 0]
+        im = self.ax.imshow(np.array(arr).reshape(120,120), interpolation='None', origin='lower')
+        ax.format_coord = Formatter(im)
         self.ax.draw_artist(self.ax)
         self.fig.canvas.blit(self.ax.bbox)
 
@@ -35,8 +45,7 @@ class ClickToDrawPoints(object):
 
 
 if __name__ == '__main__':
-    print("!!!!!!!!!!!!!!!!!!!!!Initialising live_plot_costmap node...")
-    rospy.loginfo("!!!!!!!!!!!!!!!!!!!!!Initialising live_plot_costmap node...")
+    print("Initialising live_plot_costmap node...")
 
     rospy.init_node('live_plot_costmap', anonymous=True)
 
@@ -45,6 +54,5 @@ if __name__ == '__main__':
     p = Process(target=ClickToDrawPoints, args=[ax])
     p.start()
 
-    # costmap = rospy.Subscriber('/move_base/local_costmap/costmap', nav_msgs.msg.OccupancyGrid, plotHeatmap.CB(), queue_size=10)
-    costmap = rospy.Subscriber('/chatter', String, CB, queue_size=10)
+    costmap = rospy.Subscriber('/move_base/local_costmap/costmap', nav_msgs.msg.OccupancyGrid, CB, queue_size=10)
     rospy.spin()
