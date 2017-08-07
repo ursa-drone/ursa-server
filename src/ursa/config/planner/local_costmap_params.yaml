@@ -21,6 +21,7 @@ local_costmap:
 
   # inflation
   inflation_radius: 1.5
+  cost_scaling_factor: 5.53
 
   # sensor management
   # inf_is_valid: true # Allows for Inf values in "LaserScan" observation messages. The Inf values are converted to the laser maximum range

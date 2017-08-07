@@ -99,7 +99,7 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     }
     
   }
-  ROS_INFO("cost1 -- %f", cost); // returns cost of last point on trajectory
+  ROS_INFO("obstacle cost -- %f", cost); // returns cost of last point on trajectory
   return cost;
 }
 

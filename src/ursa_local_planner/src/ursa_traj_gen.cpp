@@ -229,7 +229,7 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     double distance = sqrt(distance_sq);
     double x = pos[0];
     double y = pos[1];
-    num_steps = distance/0.5; //Parameterise this - currently 10cm
+    num_steps = distance/0.1; //Parameterise this - currently 10cm
 
     //simulate the trajectory
     for (int i = 0; i < num_steps; i++) {
@@ -274,10 +274,22 @@ void UrsaTrajectoryGenerator::VisualiseTrajectoryGenerator(base_local_planner::T
         pose.header.frame_id = "map";
         pose.pose.position.x = x;
         pose.pose.position.y = y;
-        pose.pose.position.z = 0.3;
+        pose.pose.position.z = 0.0;
 
         traj_gen_paths_.push_back(pose);
     }
+        // Add the first point (beacuse trajectories are straight and we want the visualisation to look like a line)
+        geometry_msgs::PoseStamped pose;
+        traj.getPoint(0, x, y, z);
+
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "map";
+        pose.pose.position.x = x;
+        pose.pose.position.y = y;
+        pose.pose.position.z = 0.0;
+
+        traj_gen_paths_.push_back(pose);
+
 
     base_local_planner::publishPlan(traj_gen_paths_, visualize_traj_gen_pub_);
 }
