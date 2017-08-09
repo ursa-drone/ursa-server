@@ -11,7 +11,7 @@
     <author>Lachlan Dowling</author>
     <maintainer email="lachlan.d@live.com.au">Lachlan Dowling</maintainer>
     <license>BSD</license>
-    <url>http://wiki.ros.org/dwa_local_planner</url>
+    <url>https://github.com/ursa-drone/</url>
 
     <buildtool_depend>catkin</buildtool_depend>
 

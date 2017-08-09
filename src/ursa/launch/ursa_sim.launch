@@ -39,8 +39,7 @@
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
-          -configuration_basename ursa_sim.lua"
-      output="screen">
+          -configuration_basename ursa_sim.lua">
     <remap from="scan" to="/laser/scan" />
     <remap from="imu" to="filtered_imu" />
   </node>
