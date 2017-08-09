@@ -43,6 +43,7 @@
 
 //DEBUG
 #include <ros/ros.h>
+#include <iostream>
 
 
 namespace ursa_local_planner {
@@ -51,6 +52,30 @@ inline bool logically_equal(double a, double b, double error_factor=1.0)
 {
   return std::abs(a-b)<1e-4;
 }
+
+inline std::vector<double> perpendicular_points(double x1, double y1, double x2, double y2)
+{
+  // Work out length and midpoint of line segment
+  double length = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+  double mid_x = (x1+x2)/2;
+  double mid_y = (y1+y2)/2;
+  double x = (1/length) * (x2-x1);
+  double y = (1/length) * (y2-y1);
+
+  // Find x and y co-ordinates after positive 90 degree rotation
+  double rpx = -y + mid_x;
+  double rpy = x + mid_y;
+
+  // Find x and y co-ordinates after negative 90 degree rotation
+  double rnx = y + mid_x;
+  double rny = -x + mid_y;
+
+  double arr[] = {rpx, rpy, rnx, rny};
+  std::vector<double> v (arr, arr + sizeof(arr) / sizeof(double)); 
+
+  return v;
+}
+
 
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
@@ -100,7 +125,8 @@ void UrsaTrajectoryGenerator::initialise(
 
         // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (doesn't matter if last point included)
         std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
-        for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); poseIt++){
+        std::vector<double> points_either_side;
+        for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); ++poseIt){
             geometry_msgs::PoseStamped& w = *poseIt;
             double x_diff       = sample_params_.back()[0]-w.pose.position.x;
             double y_diff       = sample_params_.back()[1]-w.pose.position.y;
@@ -113,6 +139,59 @@ void UrsaTrajectoryGenerator::initialise(
                 sample_params_.push_back(test_point);
                 }
             }
+
+        // Also add points either side of the global plan
+        std::vector<Eigen::Vector3f>::size_type i;
+        int sample_params_SIZE = sample_params_.size();
+        for (i = 1; i < sample_params_SIZE; i++){
+          double x1 = sample_params_[i][0];
+          double y1 = sample_params_[i][1];
+          double th = sample_params_[i][2];
+          
+          double x2 = sample_params_[i-1][0];
+          double y2 = sample_params_[i-1][1];
+
+          points_either_side = perpendicular_points(x1, y1, x2, y2);
+          test_point[2] = th;
+
+          std::cout << "------------------" << std::endl;
+          std::cout << "sample_params_SIZE: " << sample_params_SIZE << std::endl;
+          std::cout << "i: " << i << std::endl;
+          std::cout << "th: " << th << std::endl;
+          // std::cout << i << ", " << sample_params_[i] << std::endl;
+          // std::cout << ".." << std::endl;
+          // std::cout << i-1 << ", " << sample_params_[i-1] << std::endl;
+          // std::cout << ".." << std::endl;
+          // printf("x1: %f, y1: %f, x2: %f, y2: %f \n", x1, y1, x2, y2);
+          // std::cout << ".." << std::endl;
+          // printf("xp1: %f, yp1: %f, xp2: %f, yp2: %f \n", points_either_side[0], points_either_side[1], points_either_side[2], points_either_side[3]);
+
+          test_point[0] = points_either_side[0];
+          test_point[1] = points_either_side[1];
+          test_point[2] = th;
+          sample_params_.push_back(test_point);
+          // printf("tp1: %f, tp2: %f \n", test_point[0], test_point[1]);
+          
+          test_point[0] = points_either_side[2];
+          test_point[1] = points_either_side[3];
+          test_point[2] = th;
+          sample_params_.push_back(test_point);
+          // printf("tp3: %f, tp4: %f \n", test_point[0], test_point[1]);
+
+          std::cout << "------------------" << std::endl;
+        }
+
+        // // std::cout << "perpendicular_points(x1, y1, x2, y2): " << perpendicular_points(x1, y1, x2, y2)[0] << ", " << perpendicular_points(x1, y1, x2, y2)[1] << ", " << perpendicular_points(x1, y1, x2, y2)[2] << ", " << perpendicular_points(x1, y1, x2, y2)[3] << std::endl;
+        // points_either_side = perpendicular_points(x1, y1, x2, y2);
+
+        // test_point[0] = points_either_side[0];
+        // test_point[1] = points_either_side[1];
+        // sample_params_.push_back(test_point);
+
+        // test_point[0] = points_either_side[2];
+        // test_point[1] = points_either_side[3];
+        // sample_params_.push_back(test_point);
+
 
         // Add end point with the goal trajectory heading
         test_point[0] = global_plan_.back().pose.position.x;
