@@ -104,7 +104,8 @@ namespace ursa_local_planner {
       g_plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
       l_plan_pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("local_plan_pose_array", 1);
-      g_plan_pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("global_plan_pose_array", 1);
+      g_plan_pose_array_pub_  = private_nh.advertise<geometry_msgs::PoseArray>("global_plan_pose_array", 1);
+      target_pub_ = private_nh.advertise<geometry_msgs::PoseStamped>("ursa_target", 1);
       tf_ = tf;
       costmap_ros_ = costmap_ros;
       costmap_ros_->getRobotPose(current_pose_);
@@ -175,7 +176,6 @@ namespace ursa_local_planner {
     l_plan_pose_array_pub_.publish(local_plan_pose_array);
   }
 
-
   void UrsaPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, g_plan_pub_);
 
@@ -193,8 +193,6 @@ namespace ursa_local_planner {
     //make sure to clean things up
     delete dsrv_;
   }
-
-
 
   bool UrsaPlannerROS::dwaComputeVelocityCommands(tf::Stamped<tf::Pose> &global_pose, geometry_msgs::Twist& cmd_vel) {
     // dynamic window sampling approach to get useful velocity commands
@@ -263,8 +261,11 @@ namespace ursa_local_planner {
     }
 
     //publish information to the visualizer
-
     publishLocalPlan(local_plan);
+
+    //publish the goal to the UAV
+    target_pub_.publish(local_plan.back());
+
     return true;
   }
 
@@ -296,7 +297,7 @@ namespace ursa_local_planner {
     if (latchedStopRotateController_.isPositionReached(&planner_util_, current_pose_)) {
       ROS_INFO_NAMED("ursa_local_planner","REACHED GOAL");
       //publish an final plan because we've reached our goal position
-      publishLocalPlan(transformed_plan);
+      //publishLocalPlan(transformed_plan);
     } else {
       bool isOk = dwaComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {
@@ -305,15 +306,6 @@ namespace ursa_local_planner {
         ROS_WARN_NAMED("ursa_local_planner", "Local planner failed to produce path.");
         std::vector<geometry_msgs::PoseStamped> empty_plan;
         publishGlobalPlan(empty_plan);
-        tf::Stamped<tf::Pose> p =
-                tf::Stamped<tf::Pose>(tf::Pose(
-                        tf::createQuaternionFromYaw(0.0),
-                        tf::Point(0.0, 0.0, 0.0)),
-                        ros::Time::now(),
-                        costmap_ros_->getGlobalFrameID());
-        geometry_msgs::PoseStamped pose;
-        tf::poseStampedTFToMsg(p, pose);
-        empty_plan.push_back(pose);
         publishLocalPlan(empty_plan);
       }
       return isOk;

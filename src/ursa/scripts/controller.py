@@ -60,7 +60,7 @@ def waypointCB(data):
     #     mapPose = global_plan_endpoint
     # else:
     #     mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
-    mapPose = tf2_geometry_msgs.do_transform_pose(data.poses[-1], transform)
+    mapPose = tf2_geometry_msgs.do_transform_pose(data, transform)
     setpoint.transform.translation.x = mapPose.pose.position.x
     setpoint.transform.translation.y = mapPose.pose.position.y
     setpoint.transform.rotation.x = mapPose.pose.orientation.x
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     setpoint.transform.rotation.w = 1
 
     # listen for nav stuff
-    local_plan_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/local_plan', nav_msgs.msg.Path, waypointCB, queue_size=10)
+    local_plan_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/ursa_target', geometry_msgs.msg.PoseStamped, waypointCB, queue_size=10)
 
     # setup services as client
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
