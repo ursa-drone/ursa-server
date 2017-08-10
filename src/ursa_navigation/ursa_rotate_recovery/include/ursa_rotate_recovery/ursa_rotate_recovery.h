@@ -34,8 +34,8 @@
 *
 * Author: Eitan Marder-Eppstein
 *********************************************************************/
-#ifndef ROTATE_RECOVERY_H_
-#define ROTATE_RECOVERY_H_
+#ifndef URSA_ROTATE_RECOVERY_H_
+#define URSA_ROTATE_RECOVERY_H_
 #include <nav_core/recovery_behavior.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <tf/transform_listener.h>
@@ -45,7 +45,7 @@
 #include <geometry_msgs/Point.h>
 #include <angles/angles.h>
 
-namespace rotate_recovery{
+namespace ursa_rotate_recovery{
   /**
    * @class RotateRecovery
    * @brief A recovery behavior that rotates the robot in-place to attempt to clear out space

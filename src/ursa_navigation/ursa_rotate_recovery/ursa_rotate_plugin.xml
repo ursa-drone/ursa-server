@@ -1,4 +1,4 @@
-<library path="lib/librotate_recovery">
+<library path="lib/libursa_rotate_recovery">
   <class name="ursa_rotate_recovery/RotateRecovery" type="ursa_rotate_recovery::RotateRecovery" base_class_type="nav_core::RecoveryBehavior">
     <description>
       A recovery behavior that performs a 360 degree in-place rotation to attempt to clear out space.

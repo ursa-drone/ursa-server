@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rotate_recovery)
+project(ursa_rotate_recovery)
 
 find_package(catkin REQUIRED
         COMPONENTS
@@ -22,17 +22,17 @@ add_definitions(${EIGEN3_DEFINITIONS})
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES rotate_recovery
+    LIBRARIES ursa_rotate_recovery
     CATKIN_DEPENDS
         roscpp
         pluginlib
 )
 
-add_library(rotate_recovery src/rotate_recovery.cpp)
-add_dependencies(rotate_recovery ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(rotate_recovery ${catkin_LIBRARIES})
+add_library(ursa_rotate_recovery src/ursa_rotate_recovery.cpp)
+add_dependencies(ursa_rotate_recovery ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ursa_rotate_recovery ${catkin_LIBRARIES})
 
-install(TARGETS rotate_recovery
+install(TARGETS ursa_rotate_recovery
        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
        )
@@ -42,7 +42,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
   FILES_MATCHING PATTERN "*.h"
 )
 
-install(FILES rotate_plugin.xml
+install(FILES ursa_rotate_plugin.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

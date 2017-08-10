@@ -34,13 +34,13 @@
 *
 * Author: Eitan Marder-Eppstein
 *********************************************************************/
-#include <rotate_recovery/rotate_recovery.h>
+#include <ursa_rotate_recovery/ursa_rotate_recovery.h>
 #include <pluginlib/class_list_macros.h>
 
 //register this planner as a RecoveryBehavior plugin
-PLUGINLIB_DECLARE_CLASS(rotate_recovery, RotateRecovery, rotate_recovery::RotateRecovery, nav_core::RecoveryBehavior)
+PLUGINLIB_DECLARE_CLASS(ursa_rotate_recovery, RotateRecovery, ursa_rotate_recovery::RotateRecovery, nav_core::RecoveryBehavior)
 
-namespace rotate_recovery {
+namespace ursa_rotate_recovery {
 RotateRecovery::RotateRecovery(): global_costmap_(NULL), local_costmap_(NULL), 
   tf_(NULL), initialized_(false), world_model_(NULL) {} 
 
@@ -88,7 +88,7 @@ void RotateRecovery::runBehavior(){
     ROS_ERROR("The costmaps passed to the RotateRecovery object cannot be NULL. Doing nothing.");
     return;
   }
-  ROS_WARN("Rotate recovery behavior started.");
+  ROS_WARN("URSA UAV attempting to rotate to clear out space...");
 
   ros::Rate r(frequency_);
   ros::NodeHandle n;
