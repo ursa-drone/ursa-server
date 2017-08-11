@@ -105,7 +105,10 @@ namespace ursa_local_planner {
       l_plan_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan", 1);
       l_plan_pose_array_pub_ = private_nh.advertise<geometry_msgs::PoseArray>("local_plan_pose_array", 1);
       g_plan_pose_array_pub_  = private_nh.advertise<geometry_msgs::PoseArray>("global_plan_pose_array", 1);
-      target_pub_ = private_nh.advertise<geometry_msgs::PoseStamped>("ursa_target", 1);
+
+      ros::NodeHandle public_nh;
+      target_pub_ = public_nh.advertise<geometry_msgs::PoseStamped>("ursa_target", 1);
+      
       tf_ = tf;
       costmap_ros_ = costmap_ros;
       costmap_ros_->getRobotPose(current_pose_);

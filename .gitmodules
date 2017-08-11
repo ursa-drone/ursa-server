@@ -7,3 +7,6 @@
 [submodule "src/ceres-solver"]
 	path = src/ceres-solver
 	url = https://github.com/ceres-solver/ceres-solver.git
+[submodule "src/ursa_navigation/navigation"]
+	path = src/ursa_navigation/navigation
+	url = git@github.com:ursa-drone/navigation.git

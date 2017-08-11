@@ -1,0 +1,37 @@
+<package>
+    <name>ursa_dewall_recovery</name>
+    <version>0.0.1</version>
+    <description>
+
+        A recovery behavior that applies a gradient descent method in an attempt to move away from walls
+
+    </description>
+    <author>Lachlan Dowling</author>
+    <maintainer email="lachlan.d@live.com.au">Lachlan Dowling</maintainer>
+    <license>BSD</license>
+    <url>https://github.com/ursa-drone/</url>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>cmake_modules</build_depend>
+    <build_depend>roscpp</build_depend>
+    <build_depend>tf</build_depend>
+    <build_depend>costmap_2d</build_depend>
+    <build_depend>nav_core</build_depend>
+    <build_depend>pluginlib</build_depend>
+    <build_depend>eigen</build_depend>
+    <build_depend>base_local_planner</build_depend>
+
+    <run_depend>roscpp</run_depend>
+    <run_depend>tf</run_depend>
+    <run_depend>costmap_2d</run_depend>
+    <run_depend>nav_core</run_depend>
+    <run_depend>pluginlib</run_depend>
+    <run_depend>eigen</run_depend>
+
+
+    <export>
+        <nav_core plugin="${prefix}/ursa_dewall_plugin.xml" />
+    </export>
+
+</package>

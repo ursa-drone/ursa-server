@@ -149,7 +149,7 @@ Visualization Manager:
       Submaps:
         All Enabled: true
         Trajectory 0:
-          0.3: true
+          0.7: true
       Topic: /submap_list
       Tracking frame: base_link
       Unreliable: false
@@ -199,6 +199,7 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
+      Pose Color: 255; 85; 255
       Pose Style: None
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
@@ -221,6 +222,7 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
+      Pose Color: 255; 85; 255
       Pose Style: None
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
@@ -244,6 +246,7 @@ Visualization Manager:
       Name: Local Cost Map
       Topic: /move_base/local_costmap/costmap
       Unreliable: false
+      Use Timestamp: false
       Value: true
     - Alpha: 0.300000012
       Class: rviz/Map
@@ -253,6 +256,7 @@ Visualization Manager:
       Name: Global Cost Map
       Topic: /move_base/global_costmap/costmap
       Unreliable: false
+      Use Timestamp: false
       Value: true
     - Alpha: 1
       Axes Length: 1
@@ -284,6 +288,7 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
+      Pose Color: 255; 85; 255
       Pose Style: None
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
@@ -353,6 +358,21 @@ Visualization Manager:
       Topic: /move_base/UrsaPlannerROS/global_plan_pose_array
       Unreliable: false
       Value: false
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.100000001
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.300000012
+      Head Radius: 0.100000001
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.0500000007
+      Shape: Arrow
+      Topic: /ursa_target
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 100; 100; 100

@@ -1,4 +1,4 @@
-recovery_behaviors: [{name: ursa_rotate_recovery, type: ursa_rotate_recovery/RotateRecovery}]
+recovery_behaviors: [{name: ursa_dewall_recovery, type: ursa_dewall_recovery/DeWall},{name: ursa_rotate_recovery, type: ursa_rotate_recovery/RotateRecovery}]
 planner_patience: 0.0
 planner_frequency: 0.0
 controller_frequency: 5.0

@@ -1,10 +1,10 @@
 /*********************************************************************
-* Rotate recovery behaviour for URSA drone
+* De-wall recovery behaviour for URSA drone
 *
 * Author: LAOSAAC
 *********************************************************************/
-#ifndef URSA_ROTATE_RECOVERY_H_
-#define URSA_ROTATE_RECOVERY_H_
+#ifndef URSA_DEWALL_RECOVERY_H_
+#define URSA_DEWALL_RECOVERY_H_
 #include <nav_core/recovery_behavior.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <tf/transform_listener.h>
@@ -15,19 +15,19 @@
 #include <angles/angles.h>
 
 
-namespace ursa_rotate_recovery{
+namespace ursa_dewall_recovery{
   /**
    * @class RotateRecovery
    * @brief A recovery behavior that rotates the robot 180 degrees in order to clear out space
    */
-  class RotateRecovery : public nav_core::RecoveryBehavior {
+  class DeWall : public nav_core::RecoveryBehavior {
     public:
       /**
        * @brief  Constructor, make sure to call initialize in addition to actually initialize the object
        * @param  
        * @return 
        */
-      RotateRecovery();
+      DeWall();
 
       /**
        * @brief  Initialization function for the RotateRecovery recovery behavior
@@ -46,7 +46,7 @@ namespace ursa_rotate_recovery{
       /**
        * @brief  Destructor for the rotate recovery behavior
        */
-      ~RotateRecovery();
+      ~DeWall();
 
     private:
       costmap_2d::Costmap2DROS* global_costmap_, *local_costmap_;
@@ -54,7 +54,7 @@ namespace ursa_rotate_recovery{
       std::string name_;
       tf::TransformListener* tf_;
       bool initialized_;
-      double frequency_;
+      double frequency_, alpha_;
       base_local_planner::CostmapModel* world_model_;
   };
 };

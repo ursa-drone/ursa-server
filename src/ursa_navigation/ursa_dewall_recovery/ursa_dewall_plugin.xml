@@ -1,0 +1,7 @@
+<library path="lib/libursa_dewall_recovery">
+  <class name="ursa_dewall_recovery/DeWall" type="ursa_dewall_recovery::DeWall" base_class_type="nav_core::RecoveryBehavior">
+    <description>
+      A recovery behavior that applies a gradient descent method in an attempt to move away from walls
+    </description>
+  </class>
+</library>

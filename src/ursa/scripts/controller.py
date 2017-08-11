@@ -78,7 +78,7 @@ if __name__ == '__main__':
     setpoint.transform.rotation.w = 1
 
     # listen for nav stuff
-    local_plan_sub = rospy.Subscriber('/move_base/UrsaPlannerROS/ursa_target', geometry_msgs.msg.PoseStamped, waypointCB, queue_size=10)
+    local_plan_sub = rospy.Subscriber('/ursa_target', geometry_msgs.msg.PoseStamped, waypointCB, queue_size=10)
 
     # setup services as client
     set_mode = rospy.ServiceProxy('/mavros/set_mode', mavros_msgs.srv.SetMode)
