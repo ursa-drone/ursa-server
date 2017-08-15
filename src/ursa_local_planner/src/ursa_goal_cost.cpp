@@ -28,6 +28,7 @@ bool UrsaGoalCostFunction::init(double penalty,
 bool UrsaGoalCostFunction::reconfigure(double ucfg){
     ucfg_ = ucfg;
 };
+
 double UrsaGoalCostFunction::globalPlanHeadingAtRadius() {
     // get global orientation at robot radius
     int i = 0;

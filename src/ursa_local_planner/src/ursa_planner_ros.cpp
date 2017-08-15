@@ -162,15 +162,29 @@ namespace ursa_local_planner {
     }
   }
 
+  double UrsaPlannerROS::localPlanHeadingDiffAtOrigin(std::vector<geometry_msgs::PoseStamped>& path) {
+      // is robot heading > theta degrees from local plan orientation?
+      double cpy = tf::getYaw(current_pose_.getRotation());
+      double lpy = tf::getYaw(path.front().pose.orientation);
+      return 1.0;
+  }
+
   void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-    base_local_planner::publishPlan(path, l_plan_pub_);
+    // Only publish beginning and end points of local plan
+    std::vector<geometry_msgs::PoseStamped> l_path;
+    l_path.push_back(path.front());
+    l_path.push_back(path.back());
+    base_local_planner::publishPlan(l_path, l_plan_pub_);
+
+
+    localPlanHeadingDiffAtOrigin(path);
 
     // Visualize pose at each point along local plan
     geometry_msgs::PoseArray local_plan_pose_array;
-    local_plan_pose_array.header.stamp = path[0].header.stamp;
-    local_plan_pose_array.header.frame_id = path[0].header.frame_id;
-    for (int i=0; i<path.size(); i++){
-        local_plan_pose_array.poses.push_back(path[i].pose);
+    local_plan_pose_array.header.stamp = l_path[0].header.stamp;
+    local_plan_pose_array.header.frame_id = l_path[0].header.frame_id;
+    for (int i=0; i<l_path.size(); i++){
+        local_plan_pose_array.poses.push_back(l_path[i].pose);
     }
     l_plan_pose_array_pub_.publish(local_plan_pose_array);
   }

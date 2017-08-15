@@ -44,6 +44,7 @@
 //DEBUG
 #include <ros/ros.h>
 #include <iostream>
+using namespace std;
 
 
 namespace ursa_local_planner {
@@ -90,6 +91,16 @@ void UrsaTrajectoryGenerator::initialise(
     sample_params_.insert(sample_params_.end(), additional_samples.begin(), additional_samples.end());
 }
 
+inline double euclidean_distance(double x1, double x2, double y1, double y2)
+{
+    double x_diff = x1 - x2;
+    double y_diff = y1 - y2;
+    double distance_sq = x_diff*x_diff + y_diff*y_diff;
+    double dist = sqrt(distance_sq);
+
+    return dist;
+}
+
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
     const Eigen::Vector3f& vel,
@@ -109,89 +120,60 @@ void UrsaTrajectoryGenerator::initialise(
         visualize_heading_ = private_nh.advertise<geometry_msgs::PoseStamped>("visualize_heading", 1);
         private_nh.getParam("global_costmap/robot_radius", robot_radius_);
 
-        // Clear stuff and set up global variables
+        // clear stuff and set up global variables
         traj_gen_paths_.clear();
         sample_params_.clear();
         next_sample_index_ = 0;
         pos_ = pos;
         global_plan_ = global_plan;
 
-        // Set one sample param as the origin and heading towards the global plan at robot radius (to rotate)
-        Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
-        test_point[0] = pos_[0];
-        test_point[1] = pos_[1];
-        test_point[2] = globalPlanHeadingAtRadius();
-        sample_params_.push_back(test_point);
-
         // Iterate over the remaining points (on global plan) and add if they are seperated by at least 10cm (doesn't matter if last point included)
+        Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
         std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
-        std::vector<double> points_either_side;
+        double distance;
         for (poseIt=global_plan.begin()+1 ; poseIt < global_plan.end(); ++poseIt){
             geometry_msgs::PoseStamped& w = *poseIt;
-            double x_diff       = sample_params_.back()[0]-w.pose.position.x;
-            double y_diff       = sample_params_.back()[1]-w.pose.position.y;
-            double distance_sq  = x_diff*x_diff + y_diff*y_diff;
-            double distance     = sqrt(distance_sq);
+            // if there is nothing in sample params find the next point 10cm from current pose
+            if (sample_params_.size() < 1){
+                distance = euclidean_distance(pos_[0], w.pose.position.x, pos_[1], w.pose.position.y);
+            }
+            // else if there are points in sample params find the next point 10cm along
+            else{
+                distance = euclidean_distance(sample_params_.back()[0], w.pose.position.x,sample_params_.back()[1], w.pose.position.y);
+            }
             if (distance>=0.1){
                 test_point[0] = w.pose.position.x;
                 test_point[1] = w.pose.position.y;
                 test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
                 sample_params_.push_back(test_point);
-                }
             }
+        }
 
         // Also add points either side of the global plan
+        std::vector<double> points_either_side;
         std::vector<Eigen::Vector3f>::size_type i;
         int sample_params_SIZE = sample_params_.size();
         for (i = 1; i < sample_params_SIZE; i++){
           double x1 = sample_params_[i][0];
           double y1 = sample_params_[i][1];
-          double th = sample_params_[i][2];
-          
           double x2 = sample_params_[i-1][0];
           double y2 = sample_params_[i-1][1];
+          double th = sample_params_[i][2];
 
+          // gets points either side and heading of furthest point
           points_either_side = perpendicular_points(x1, y1, x2, y2);
           test_point[2] = th;
 
-          std::cout << "------------------" << std::endl;
-          std::cout << "sample_params_SIZE: " << sample_params_SIZE << std::endl;
-          std::cout << "i: " << i << std::endl;
-          std::cout << "th: " << th << std::endl;
-          // std::cout << i << ", " << sample_params_[i] << std::endl;
-          // std::cout << ".." << std::endl;
-          // std::cout << i-1 << ", " << sample_params_[i-1] << std::endl;
-          // std::cout << ".." << std::endl;
-          // printf("x1: %f, y1: %f, x2: %f, y2: %f \n", x1, y1, x2, y2);
-          // std::cout << ".." << std::endl;
-          // printf("xp1: %f, yp1: %f, xp2: %f, yp2: %f \n", points_either_side[0], points_either_side[1], points_either_side[2], points_either_side[3]);
-
+          // add one side
           test_point[0] = points_either_side[0];
           test_point[1] = points_either_side[1];
-          test_point[2] = th;
           sample_params_.push_back(test_point);
-          // printf("tp1: %f, tp2: %f \n", test_point[0], test_point[1]);
-          
+
+          // add the other
           test_point[0] = points_either_side[2];
           test_point[1] = points_either_side[3];
-          test_point[2] = th;
           sample_params_.push_back(test_point);
-          // printf("tp3: %f, tp4: %f \n", test_point[0], test_point[1]);
-
-          std::cout << "------------------" << std::endl;
         }
-
-        // // std::cout << "perpendicular_points(x1, y1, x2, y2): " << perpendicular_points(x1, y1, x2, y2)[0] << ", " << perpendicular_points(x1, y1, x2, y2)[1] << ", " << perpendicular_points(x1, y1, x2, y2)[2] << ", " << perpendicular_points(x1, y1, x2, y2)[3] << std::endl;
-        // points_either_side = perpendicular_points(x1, y1, x2, y2);
-
-        // test_point[0] = points_either_side[0];
-        // test_point[1] = points_either_side[1];
-        // sample_params_.push_back(test_point);
-
-        // test_point[0] = points_either_side[2];
-        // test_point[1] = points_either_side[3];
-        // sample_params_.push_back(test_point);
-
 
         // Add end point with the goal trajectory heading
         test_point[0] = global_plan_.back().pose.position.x;
@@ -301,11 +283,10 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
 
     // Generate a line between current position and sample target
     // Make the points separated by 10cm
-    int num_steps; 
-    double x_diff = sample_target[0]-pos[0];
-    double y_diff = sample_target[1]-pos[1];
-    double distance_sq = x_diff*x_diff+y_diff*y_diff;
-    double distance = sqrt(distance_sq);
+    int num_steps;
+    double x_diff = sample_target[0] - pos[0];
+    double y_diff = sample_target[1] - pos[1];
+    double distance = euclidean_distance(sample_target[0], pos[0], sample_target[1], pos[1]);
     double x = pos[0];
     double y = pos[1];
     num_steps = distance/0.1; //Parameterise this - currently 10cm

@@ -94,14 +94,14 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     //     cost +=  f_cost;
     // else
     //     cost = f_cost;
-    if (f_cost > cost){
-      cost = f_cost;      
-    }
-    // cost +=  f_cost;
+    // if (f_cost > cost){
+    //   cost = f_cost;      
+    // }
+    cost +=  f_cost;
     
   }
-  ROS_INFO("obstacle cost -- %f", cost); // returns cost of last point on trajectory
-  // cost = cost / traj.getPointsSize();
+  // ROS_INFO("obstacle cost -- %f", cost); // returns cost of last point on trajectory
+  cost = cost / traj.getPointsSize();
   return cost;
 }
 
