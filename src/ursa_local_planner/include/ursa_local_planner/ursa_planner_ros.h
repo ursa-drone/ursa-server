@@ -131,7 +131,7 @@ namespace ursa_local_planner {
 
       void publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path);
 
-      double localPlanHeadingDiffAtOrigin(std::vector<geometry_msgs::PoseStamped>& path);
+      bool headingOrientationNearLocalPlan(std::vector<geometry_msgs::PoseStamped>& path);
 
       tf::TransformListener* tf_; ///< @brief Used for transforming point clouds
 

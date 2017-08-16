@@ -142,7 +142,6 @@ public:
 
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
   double headingGivenXandY(double x_diff, double y_diff);
-  double globalPlanHeadingAtRadius();
 
 protected:
 
@@ -150,8 +149,6 @@ protected:
   // to store sample params of each sample between init and generation
   // Sample params are x,y,yaw components of samples on goal path
   std::vector<Eigen::Vector3f> sample_params_;
-  std::vector<Eigen::Vector3f> temp_sample_params_;
-  std::vector<Eigen::Vector3f> prev_sample_params_;
   base_local_planner::LocalPlannerLimits* limits_;
   Eigen::Vector3f pos_;
   Eigen::Vector3f vel_;
@@ -171,7 +168,6 @@ protected:
 
   double robot_radius_;
   std::vector<geometry_msgs::PoseStamped> global_plan_;
-
   std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
 };
 

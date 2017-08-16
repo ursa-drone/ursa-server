@@ -29,17 +29,16 @@ public:
   void setPenalty(double penalty) {
     penalty_ = penalty;
   }
-  double globalPlanHeadingAtRadius();
-  bool checkIfInsideRadius(double x, double y, double multiplier);
-  bool reconfigure(double ucfg);
 
 private:
     double penalty_;
     tf::Stamped<tf::Pose> global_pose_;
     std::vector<geometry_msgs::PoseStamped> global_plan_;
     double robot_radius_;
-    double ucfg_;
 };
 
 } /* namespace ursa_local_planner */
 #endif /* URSA_GOAL_COST_FUNCTION_H_ */
+
+
+  // double globalPlanHeadingAtRadius();

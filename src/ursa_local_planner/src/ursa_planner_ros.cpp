@@ -63,7 +63,6 @@ namespace ursa_local_planner {
         default_config_ = config;
         setup_ = true;
       }
-      ROS_INFO("config.ucfg -- %f", config.ucfg);
       // update generic local planner params
       base_local_planner::LocalPlannerLimits limits;
       limits.max_trans_vel = config.max_trans_vel;
@@ -162,22 +161,24 @@ namespace ursa_local_planner {
     }
   }
 
-  double UrsaPlannerROS::localPlanHeadingDiffAtOrigin(std::vector<geometry_msgs::PoseStamped>& path) {
+  bool UrsaPlannerROS::headingOrientationNearLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
       // is robot heading > theta degrees from local plan orientation?
       double cpy = tf::getYaw(current_pose_.getRotation());
       double lpy = tf::getYaw(path.front().pose.orientation);
-      return 1.0;
+      return (fabs(cpy-lpy) < M_PI/4);
   }
 
   void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-    // Only publish beginning and end points of local plan
+
+    // If drone is facing towards local plan then set target sa endpoint, if not set as front of local plan    
     std::vector<geometry_msgs::PoseStamped> l_path;
-    l_path.push_back(path.front());
-    l_path.push_back(path.back());
+    if (headingOrientationNearLocalPlan(path)){
+      l_path.push_back(path.back());
+    }else{
+      l_path.push_back(path.front());
+    }
     base_local_planner::publishPlan(l_path, l_plan_pub_);
 
-
-    localPlanHeadingDiffAtOrigin(path);
 
     // Visualize pose at each point along local plan
     geometry_msgs::PoseArray local_plan_pose_array;
@@ -250,7 +251,7 @@ namespace ursa_local_planner {
     //if we cannot move... tell someone
     std::vector<geometry_msgs::PoseStamped> local_plan;
     if(path.cost_ < 0) {
-      ROS_DEBUG_NAMED("dwa_local_planner",
+      ROS_DEBUG_NAMED("ursa_local_planner",
           "Ursa local planner failed to find a valid plan, cost functions discarded all candidates. This can mean there is an obstacle too close to the robot.");
       local_plan.clear();
       publishLocalPlan(local_plan);
@@ -310,7 +311,7 @@ namespace ursa_local_planner {
     if (latchedStopRotateController_.isPositionReached(&planner_util_, current_pose_)) {
       ROS_INFO_NAMED("ursa_local_planner","REACHED GOAL");
       //publish an final plan because we've reached our goal position
-      publishLocalPlan(transformed_plan);
+      // publishLocalPlan(transformed_plan);
     } else {
       bool isOk = dwaComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {

@@ -61,8 +61,6 @@ namespace ursa_local_planner {
         config.use_dwa,
         sim_period_);
 
-    goal_costs_.reconfigure(config.ucfg);
-
     double resolution = planner_util_->getCostmap()->getResolution();
     pdist_scale_ = config.path_distance_bias;
     // pdistscale used for both path and alignment, set  forward_point_distance to zero to discard alignment
@@ -322,9 +320,7 @@ namespace ursa_local_planner {
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
-    // ROS_INFO("########################");
     scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
-    // ROS_INFO("########################");
 
     if(publish_traj_pc_)
     {
