@@ -47,6 +47,8 @@
 #include <ros/ros.h>
 
 #include <pcl_conversions/pcl_conversions.h>
+#include <iostream>
+using namespace std;
 
 namespace ursa_local_planner {
   void UrsaPlanner::reconfigure(UrsaPlannerConfig &config)
@@ -165,7 +167,7 @@ namespace ursa_local_planner {
     // (any function returning negative values will abort scoring, so the order can improve performance)
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
-    // critics.push_back(&obstacle_costs_);
+    critics.push_back(&obstacle_costs_);
     // critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
     // critics.push_back(&path_costs_); // prefers trajectories on global path
@@ -320,6 +322,7 @@ namespace ursa_local_planner {
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
+    cout << "============" << endl;
     scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
     if(publish_traj_pc_)

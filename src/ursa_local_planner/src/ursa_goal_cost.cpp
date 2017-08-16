@@ -67,7 +67,8 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
     // get index of global plan point where distance is minimum to trajectory
     double min_index = min_element(dist_traj_to_goal.begin(), dist_traj_to_goal.end()) - dist_traj_to_goal.begin();
 
-    cost = 10 * (1 - min_index/global_plan_.size());
+    cost = 0.1 * (1 - min_index/global_plan_.size());
+    ROS_INFO("goal cost -- 1 -- %f", cost); // returns cost of last point on trajectory
     return cost;
     }
 }

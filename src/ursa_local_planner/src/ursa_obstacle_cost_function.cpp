@@ -39,6 +39,8 @@
 #include <cmath>
 #include <Eigen/Core>
 #include <ros/console.h>
+#include <iostream>
+using namespace std;
 
 namespace ursa_local_planner {
 
@@ -70,6 +72,18 @@ bool UrsaObstacleCostFunction::prepare() {
   return true;
 }
 
+inline bool checkIfInsideRadius(double x, double y, double pose_x, double pose_y, double multiplier, double radius){
+    // get global orientation at robot radius
+    int i = 0;
+    while   (((pose_x - radius*multiplier) <= x) &&
+             (x < (pose_x + radius*multiplier))  &&
+             ((pose_y - radius*multiplier) <= y) &&
+             (y < (pose_y + radius*multiplier))) {
+                return 1;
+            }
+    return 0;
+}
+
 double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj) {
   double cost = 0;
   double scale = getScalingFactor(traj, scaling_speed_, max_trans_vel_, max_scaling_factor_);
@@ -80,6 +94,8 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     return -9;
   }
 
+  double dx, dy, dth;
+  traj.getPoint(0, dx, dy, dth);
   for (unsigned int i = 0; i < traj.getPointsSize(); ++i) {
     traj.getPoint(i, px, py, pth);
     double f_cost = footprintCost(px, py, pth,
@@ -90,6 +106,11 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
         return f_cost;
     }
 
+    // return the cost of a point just outside the radius of drone
+    if (!checkIfInsideRadius(px,py,dx,dy,1,footprint_spec_[0].x)){
+      ROS_INFO("obstacle cost -- 1 -- %f", f_cost); // returns cost of last point on trajectory
+      return f_cost;
+    }
     // if(sum_scores_)
     //     cost +=  f_cost;
     // else
@@ -100,8 +121,8 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     cost +=  f_cost;
     
   }
+  // cost = cost / traj.getPointsSize();
   // ROS_INFO("obstacle cost -- %f", cost); // returns cost of last point on trajectory
-  cost = cost / traj.getPointsSize();
   return cost;
 }
 
