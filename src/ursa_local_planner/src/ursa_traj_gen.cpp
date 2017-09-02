@@ -44,6 +44,7 @@
 //DEBUG
 #include <ros/ros.h>
 #include <iostream>
+#include <cstdlib>
 using namespace std;
 
 
@@ -109,6 +110,11 @@ inline double euclidean_distance(double x1, double x2, double y1, double y2)
     return dist;
 }
 
+void UrsaTrajectoryGenerator::loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj){
+     previous_result_traj_ = previous_result_traj;
+}
+
+
 void UrsaTrajectoryGenerator::initialise(
     const Eigen::Vector3f& pos,
     const Eigen::Vector3f& vel,
@@ -135,7 +141,8 @@ void UrsaTrajectoryGenerator::initialise(
         pos_ = pos;
         global_plan_ = global_plan;
 
-        double goal_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, pos_[0], pos[1], 1.3, robot_radius_);
+        double goal_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, pos_[0], pos[1], 1.5, robot_radius_);
+
         Eigen::Vector3f test_point = Eigen::Vector3f::Zero();        
         if (goal_inside_radius){
             // Add end point with the goal trajectory heading
@@ -177,7 +184,9 @@ void UrsaTrajectoryGenerator::initialise(
               double th = sample_params_[i][2];
 
               // gets points either side and heading of furthest point
-              points_either_side = perpendicular_points(x1, y1, x2, y2, 0.2);
+              double perp_dist = 0.7 * (rand() / double(RAND_MAX)) + 0.3;
+              cout << "perp_dist: " << perp_dist << endl;
+              points_either_side = perpendicular_points(x1, y1, x2, y2, perp_dist);
               test_point[2] = th;
 
               // add one side
@@ -189,6 +198,20 @@ void UrsaTrajectoryGenerator::initialise(
               test_point[0] = points_either_side[2];
               test_point[1] = points_either_side[3];
               sample_params_.push_back(test_point);
+            }
+
+            // Add prevoius point
+            if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
+                double x, y, th;
+                previous_result_traj_.getEndpoint(x, y, th);
+                double prev_path_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, x, y, 1, robot_radius_);
+                if (prev_path_inside_radius){
+                    test_point[0] = x;
+                    test_point[1] = y;
+                    test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
+                    sample_params_.push_back(test_point);
+                    cout << "added prev" << endl;
+                }
             }
         }
     }

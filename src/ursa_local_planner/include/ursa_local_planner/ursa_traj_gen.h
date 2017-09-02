@@ -142,6 +142,7 @@ public:
 
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
   double headingGivenXandY(double x_diff, double y_diff);
+  void loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj);
 
 protected:
 
@@ -169,6 +170,7 @@ protected:
   double robot_radius_;
   std::vector<geometry_msgs::PoseStamped> global_plan_;
   std::vector<geometry_msgs::PoseStamped> traj_gen_paths_;
+  base_local_planner::Trajectory previous_result_traj_;
 };
 
 } /* namespace base_local_planner */

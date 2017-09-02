@@ -62,6 +62,7 @@
 #include <base_local_planner/simple_scored_sampling_planner.h>
 #include <ursa_local_planner/ursa_goal_cost.h>
 #include <ursa_local_planner/ursa_goal_front_cost.h>
+#include <ursa_local_planner/ursa_prev_path_cost.h>
 
 #include <nav_msgs/Path.h>
 
@@ -182,6 +183,7 @@ namespace ursa_local_planner {
       UrsaGoalCostFunction goal_costs_;
       double robot_radius_;
       UrsaPreferForwardCostFunction goal_front_costs_;
+      ursa_local_planner::UrsaPrevPathCostFunction prev_path_costs_;
 
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
   };
