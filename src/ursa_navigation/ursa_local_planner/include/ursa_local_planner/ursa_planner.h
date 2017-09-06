@@ -57,10 +57,12 @@
 
 #include <base_local_planner/oscillation_cost_function.h>
 #include <base_local_planner/map_grid_cost_function.h>
-#include <base_local_planner/obstacle_cost_function.h>
+// #include <base_local_planner/obstacle_cost_function.h>
+#include <ursa_local_planner/ursa_obstacle_cost_function.h>
 #include <base_local_planner/simple_scored_sampling_planner.h>
 #include <ursa_local_planner/ursa_goal_cost.h>
 #include <ursa_local_planner/ursa_goal_front_cost.h>
+#include <ursa_local_planner/ursa_prev_path_cost.h>
 
 #include <nav_msgs/Path.h>
 
@@ -172,7 +174,8 @@ namespace ursa_local_planner {
       // see constructor body for explanations
       UrsaTrajectoryGenerator generator_;
       base_local_planner::OscillationCostFunction oscillation_costs_;
-      base_local_planner::ObstacleCostFunction obstacle_costs_;
+      // base_local_planner::ObstacleCostFunction obstacle_costs_;
+      ursa_local_planner::UrsaObstacleCostFunction obstacle_costs_;
       base_local_planner::MapGridCostFunction path_costs_;
       //base_local_planner::MapGridCostFunction goal_costs_;
       // base_local_planner::MapGridCostFunction goal_front_costs_;
@@ -180,6 +183,7 @@ namespace ursa_local_planner {
       UrsaGoalCostFunction goal_costs_;
       double robot_radius_;
       UrsaPreferForwardCostFunction goal_front_costs_;
+      ursa_local_planner::UrsaPrevPathCostFunction prev_path_costs_;
 
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
   };

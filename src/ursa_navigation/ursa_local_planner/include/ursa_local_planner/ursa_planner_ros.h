@@ -56,6 +56,7 @@
 #include <base_local_planner/odometry_helper_ros.h>
 
 #include <ursa_local_planner/ursa_planner.h>
+#include <ursa_local_planner/ursa_goal_cost.h>
 
 namespace ursa_local_planner {
   /**
@@ -129,6 +130,8 @@ namespace ursa_local_planner {
       void publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path);
 
       void publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path);
+
+      bool headingOrientationNearLocalPlan(std::vector<geometry_msgs::PoseStamped>& path);
 
       tf::TransformListener* tf_; ///< @brief Used for transforming point clouds
 

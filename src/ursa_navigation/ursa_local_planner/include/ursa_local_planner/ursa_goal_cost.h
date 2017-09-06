@@ -13,7 +13,6 @@ namespace ursa_local_planner {
 
 class UrsaGoalCostFunction: public base_local_planner::TrajectoryCostFunction {
 public:
-
   UrsaGoalCostFunction() {}
   ~UrsaGoalCostFunction() {}
 
@@ -30,8 +29,6 @@ public:
   void setPenalty(double penalty) {
     penalty_ = penalty;
   }
-  double globalPlanHeadingAtRadius();
-  bool checkIfInsideRadius(double x, double y, double multiplier);
 
 private:
     double penalty_;
@@ -42,3 +39,6 @@ private:
 
 } /* namespace ursa_local_planner */
 #endif /* URSA_GOAL_COST_FUNCTION_H_ */
+
+
+  // double globalPlanHeadingAtRadius();

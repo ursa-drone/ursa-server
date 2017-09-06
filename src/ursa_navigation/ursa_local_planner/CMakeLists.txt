@@ -47,7 +47,10 @@ add_library(ursa_local_planner
 				src/ursa_planner_ros.cpp
 				src/ursa_traj_gen.cpp
 				src/ursa_goal_cost.cpp
-                src/ursa_goal_front_cost.cpp)
+                src/ursa_goal_front_cost.cpp
+                src/ursa_obstacle_cost_function.cpp
+                src/ursa_costmap_model.cpp
+                src/ursa_prev_path_cost.cpp)
 target_link_libraries(ursa_local_planner ${catkin_LIBRARIES})
 add_dependencies(ursa_local_planner ursa_local_planner_gencfg)
 add_dependencies(ursa_local_planner nav_msgs_generate_messages_cpp)

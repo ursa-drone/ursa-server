@@ -63,7 +63,6 @@ namespace ursa_local_planner {
         default_config_ = config;
         setup_ = true;
       }
-
       // update generic local planner params
       base_local_planner::LocalPlannerLimits limits;
       limits.max_trans_vel = config.max_trans_vel;
@@ -166,15 +165,31 @@ namespace ursa_local_planner {
     }
   }
 
+  bool UrsaPlannerROS::headingOrientationNearLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
+      // is robot heading > theta degrees from local plan orientation?
+      double cpy = tf::getYaw(current_pose_.getRotation());
+      double lpy = tf::getYaw(path.front().pose.orientation);
+      return (fabs(cpy-lpy) < M_PI/4);
+  }
+
   void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-    base_local_planner::publishPlan(path, l_plan_pub_);
+
+    // If drone is facing towards local plan then set target sa endpoint, if not set as front of local plan    
+    std::vector<geometry_msgs::PoseStamped> l_path;
+    if (headingOrientationNearLocalPlan(path)){
+      l_path.push_back(path.back());
+    }else{
+      l_path.push_back(path.front());
+    }
+    base_local_planner::publishPlan(l_path, l_plan_pub_);
+
 
     // Visualize pose at each point along local plan
     geometry_msgs::PoseArray local_plan_pose_array;
-    local_plan_pose_array.header.stamp = path[0].header.stamp;
-    local_plan_pose_array.header.frame_id = path[0].header.frame_id;
-    for (int i=0; i<path.size(); i++){
-        local_plan_pose_array.poses.push_back(path[i].pose);
+    local_plan_pose_array.header.stamp = l_path[0].header.stamp;
+    local_plan_pose_array.header.frame_id = l_path[0].header.frame_id;
+    for (int i=0; i<l_path.size(); i++){
+        local_plan_pose_array.poses.push_back(l_path[i].pose);
     }
     l_plan_pose_array_pub_.publish(local_plan_pose_array);
   }
@@ -237,7 +252,7 @@ namespace ursa_local_planner {
     //if we cannot move... tell someone
     std::vector<geometry_msgs::PoseStamped> local_plan;
     if(path.cost_ < 0) {
-      ROS_DEBUG_NAMED("dwa_local_planner",
+      ROS_DEBUG_NAMED("ursa_local_planner",
           "Ursa local planner failed to find a valid plan, cost functions discarded all candidates. This can mean there is an obstacle too close to the robot.");
       local_plan.clear();
       publishLocalPlan(local_plan);
@@ -301,6 +316,7 @@ namespace ursa_local_planner {
       ROS_INFO_NAMED("ursa_local_planner","REACHED GOAL");
       //publish an final plan because we've reached our goal position
       //publishLocalPlan(transformed_plan);
+
     } else {
       bool isOk = dwaComputeVelocityCommands(current_pose_, cmd_vel);
       if (isOk) {
