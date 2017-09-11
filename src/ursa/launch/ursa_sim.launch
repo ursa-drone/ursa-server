@@ -32,11 +32,11 @@
 
     <!-- SCRIPTS from URSA package -->
   <node name="ursa_controller" pkg="ursa" type="controller.py" output="screen" required="true"/> 
-  <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true"/>
-  <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
-  <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true">
-    <remap from="/mavros/distance_sensor/sonar_sensor" to="/range" />
+  <node name="laser_scan_filter" pkg="ursa" type="scan_filtered_nans.py" output="screen" required="true">
+    <remap from="scan" to="/laser/scan" />
   </node>
+  <node name="imu_filter" pkg="ursa" type="clean_imu_data.py" output="screen" required="true"/>
+  <node name="height_publisher" pkg="ursa" type="height_publisher.py" respawn="true"/>
   <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find ursa)/config
