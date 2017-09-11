@@ -5,6 +5,7 @@ local_costmap:
   # coordinate frame and tf parameters
   global_frame: /map
   robot_base_frame: base_link
+  robot_radius: 0.4
   # rate parameters
   update_frequency: 5.0
   publish_frequency: 2.0

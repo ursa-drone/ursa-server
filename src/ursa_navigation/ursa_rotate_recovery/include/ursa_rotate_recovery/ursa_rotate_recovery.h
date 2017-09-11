@@ -59,4 +59,3 @@ namespace ursa_rotate_recovery{
   };
 };
 #endif  
- 

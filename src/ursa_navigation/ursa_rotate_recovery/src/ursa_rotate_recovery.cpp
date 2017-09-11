@@ -29,7 +29,7 @@ void RotateRecovery::initialize(std::string name, tf::TransformListener* tf,
     private_nh.param("frequency", frequency_, 20.0);
 
 
-    //world_model_ = new base_local_planner::CostmapModel(*local_costmap_->getCostmap());
+    world_model_ = new base_local_planner::CostmapModel(*local_costmap_->getCostmap());
 
     initialized_ = true;
   }
@@ -39,7 +39,7 @@ void RotateRecovery::initialize(std::string name, tf::TransformListener* tf,
 }
 
 RotateRecovery::~RotateRecovery(){
-  //delete world_model_;
+  delete world_model_;
 }
 
 void RotateRecovery::runBehavior(){

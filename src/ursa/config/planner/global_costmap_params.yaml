@@ -7,7 +7,7 @@ global_costmap:
   robot_base_frame: base_link
   update_frequency: 5.0
   publish_frequency: 2.0
-  robot_radius: 0.5
+  robot_radius: 0.4
   obstacles:
     observation_sources: laser_scan_sensor
     laser_scan_sensor: {sensor_frame: hokuyo_link, data_type: LaserScan, topic: /laser/scan, marking: true, clearing: true}

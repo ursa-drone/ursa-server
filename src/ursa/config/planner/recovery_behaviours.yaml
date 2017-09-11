@@ -1,4 +1,4 @@
-recovery_behaviors: [{name: ursa_dewall_recovery, type: ursa_dewall_recovery/DeWall},{name: ursa_rotate_recovery, type: ursa_rotate_recovery/RotateRecovery}]
+recovery_behaviors: [{name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery},{name: ursa_rotate_recovery, type: ursa_rotate_recovery/RotateRecovery},{name: aggressive_reset, type: clear_costmap_recovery/ClearCostmapRecovery}] ##{name: ursa_dewall_recovery, type: ursa_dewall_recovery/DeWall},
 planner_patience: 0.0
 planner_frequency: 1.0
 controller_frequency: 2.0

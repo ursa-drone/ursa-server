@@ -274,9 +274,6 @@ namespace ursa_local_planner {
     return true;
   }
 
-
-
-
   bool UrsaPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
     // dispatches to either dwa sampling control or stop and rotate control, depending on whether we have been close enough to goal
     if ( ! costmap_ros_->getRobotPose(current_pose_)) {
@@ -310,13 +307,10 @@ namespace ursa_local_planner {
         publishGlobalPlan(transformed_plan);
       } else {
         ROS_WARN_NAMED("ursa_local_planner", "Local planner failed to produce path.");
-        std::vector<geometry_msgs::PoseStamped> empty_plan;
-        publishGlobalPlan(empty_plan);
-        publishLocalPlan(empty_plan);
       }
       return isOk;
     }
-  }
+  } 
 
 
 };
