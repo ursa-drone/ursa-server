@@ -172,26 +172,8 @@ namespace ursa_local_planner {
       return (fabs(cpy-lpy) < M_PI/4);
   }
 
-  void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
-
-    // If drone is facing towards local plan then set target sa endpoint, if not set as front of local plan    
-    std::vector<geometry_msgs::PoseStamped> l_path;
-    if (headingOrientationNearLocalPlan(path)){
-      l_path.push_back(path.back());
-    }else{
-      l_path.push_back(path.front());
-    }
-    base_local_planner::publishPlan(l_path, l_plan_pub_);
-
-
-    // Visualize pose at each point along local plan
-    geometry_msgs::PoseArray local_plan_pose_array;
-    local_plan_pose_array.header.stamp = l_path[0].header.stamp;
-    local_plan_pose_array.header.frame_id = l_path[0].header.frame_id;
-    for (int i=0; i<l_path.size(); i++){
-        local_plan_pose_array.poses.push_back(l_path[i].pose);
-    }
-    l_plan_pose_array_pub_.publish(local_plan_pose_array);
+  void UrsaPlannerROS::publishLocalPlan(std::vector<geometry_msgs::PoseStamped>& path) { 
+    base_local_planner::publishPlan(path, l_plan_pub_);
   }
 
   void UrsaPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
@@ -282,7 +264,12 @@ namespace ursa_local_planner {
     publishLocalPlan(local_plan);
 
     //publish the goal to the UAV
-    target_pub_.publish(local_plan.back());
+    // If drone is facing towards local plan then set target sa endpoint, if not set as front of local plan   
+    if (headingOrientationNearLocalPlan(local_plan)){
+      target_pub_.publish(local_plan.back());
+    }else{
+      target_pub_.publish(local_plan.front());
+    }
 
     return true;
   }
