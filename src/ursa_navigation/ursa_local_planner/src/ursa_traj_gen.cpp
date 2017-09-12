@@ -143,7 +143,7 @@ void UrsaTrajectoryGenerator::initialise(
 
         double goal_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, pos_[0], pos[1], 1.5, robot_radius_);
 
-        Eigen::Vector3f test_point = Eigen::Vector3f::Zero();        
+        Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
         if (goal_inside_radius){
             // Add end point with the goal trajectory heading
             test_point[0] = global_plan_.back().pose.position.x;
@@ -204,8 +204,9 @@ void UrsaTrajectoryGenerator::initialise(
             if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
                 double x, y, th;
                 previous_result_traj_.getEndpoint(x, y, th);
-                double prev_path_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, x, y, 1, robot_radius_);
-                if (prev_path_inside_radius){
+                cout << "something there: "<< x << ", " << y << ", " << th << endl;
+                double prev_path_inside_radius = checkIfInsideRadius(global_plan_.front().pose.position.x, global_plan_.front().pose.position.y, x, y, 1, robot_radius_);
+                if (!prev_path_inside_radius){
                     test_point[0] = x;
                     test_point[1] = y;
                     test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);

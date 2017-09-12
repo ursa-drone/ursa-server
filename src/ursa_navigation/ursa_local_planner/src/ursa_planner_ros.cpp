@@ -179,7 +179,7 @@ namespace ursa_local_planner {
   void UrsaPlannerROS::publishGlobalPlan(std::vector<geometry_msgs::PoseStamped>& path) {
     base_local_planner::publishPlan(path, g_plan_pub_);
 
-    // Visualize pose at each point along local plan
+    // Visualize pose at each point along global plan
     geometry_msgs::PoseArray global_plan_pose_array;
     global_plan_pose_array.header.stamp = path[0].header.stamp;
     global_plan_pose_array.header.frame_id = path[0].header.frame_id;

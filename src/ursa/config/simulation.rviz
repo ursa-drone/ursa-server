@@ -4,7 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.600670993
     Tree Height: 679
@@ -55,6 +54,8 @@ Visualization Manager:
         All Enabled: false
         base_link:
           Value: true
+        drone_link:
+          Value: true
         fcu:
           Value: false
         hokuyo_link:
@@ -80,6 +81,8 @@ Visualization Manager:
         map:
           odom:
             base_link:
+              drone_link:
+                {}
               fcu:
                 {}
               hokuyo_link:
@@ -118,7 +121,8 @@ Visualization Manager:
       Submaps:
         All Enabled: true
         Trajectory 0:
-          0.2: true
+          0.139: true
+          1.49: true
       Topic: /submap_list
       Tracking frame: base_link
       Unreliable: false
@@ -266,22 +270,6 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Alpha: 1
-      Arrow Length: 0.300000012
-      Axes Length: 0.300000012
-      Axes Radius: 0.00999999978
-      Class: rviz/PoseArray
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.0700000003
-      Head Radius: 0.0299999993
-      Name: Local Plan PoseArray
-      Shaft Length: 0.230000004
-      Shaft Radius: 0.00999999978
-      Shape: Arrow (Flat)
-      Topic: /move_base/UrsaPlannerROS/local_plan_pose_array
-      Unreliable: false
-      Value: true
-    - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.100000001
       Class: rviz/Pose
@@ -331,11 +319,11 @@ Visualization Manager:
       Axes Length: 1
       Axes Radius: 0.100000001
       Class: rviz/Pose
-      Color: 255; 25; 0
+      Color: 170; 255; 255
       Enabled: true
       Head Length: 0.300000012
       Head Radius: 0.100000001
-      Name: Pose
+      Name: Target Pose
       Shaft Length: 1
       Shaft Radius: 0.0500000007
       Shape: Arrow
@@ -357,24 +345,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 11.3636417
+      Distance: 7.52258205
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.481389582
-        Y: -2.02651405
-        Z: -2.86102295e-06
+        X: 0.0337501764
+        Y: -0.722278357
+        Z: -3.33786011e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.59577328
+      Pitch: 1.1657728
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 4.69855642
+      Yaw: 4.6235528
     Saved: ~
 Window Geometry:
   Displays:
