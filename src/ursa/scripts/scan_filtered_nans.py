@@ -8,7 +8,7 @@ pub = rospy.Publisher('scan_filtered_nans', LaserScan, queue_size=10)
 
 def callback(data):
     x = data.ranges
-    data.ranges = ([MAX_RANGE + 1 if math.isnan(y) else y for y in x])
+    data.ranges = ([MAX_RANGE + 0.1 if math.isnan(y) else y for y in x])
     data.range_max = MAX_RANGE + 1
     pub.publish(data)
 
