@@ -1,0 +1,14 @@
+<launch>
+    <!-- Setup urg_node -->
+    <machine name="drone" address="10.42.0.101" user="pi"/>
+    <node machine="drone" name="urg_node" pkg="urg_node" type="urg_node" respawn="true"/>
+
+    <!-- Echo scan data -->
+    <node name="echo_scans" pkg="rostopic" type="rostopic" args="echo \scan" respawn="true" output="screen"/>
+
+    <!-- Load robot description file to paramter server -->
+    <param name="robot_description" textfile="$(find debug)/urdf/ursa.urdf" />
+
+    <!-- Use robot description to publish /tf node -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+</launch>
