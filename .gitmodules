@@ -10,3 +10,11 @@
 [submodule "src/ursa_navigation/navigation"]
 	path = src/ursa_navigation/navigation
 	url = git@github.com:ursa-drone/navigation.git
+[submodule "src/mavlink"]
+        path = src/mavlink
+        url = https://github.com/mavlink/mavlink.git
+[submodule "src/mavros"]
+        path = src/mavros
+        url = https://github.com/mavlink/mavros.git
+
+
