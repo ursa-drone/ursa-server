@@ -313,12 +313,14 @@ namespace ursa_local_planner {
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
     // prepare cost functions and generators for this run - insert previous traj if goal hasn't changed
-    if (goal.x-prev_goal_.x<0.05 && goal.y-prev_goal_.y<0.05){
-      generator_.loadPreviousLocalTraj(result_traj_);
-    } else {
-      ROS_INFO("GOAL CHANGED");
-      generator_.clearPreviousLocalTraj();
-    }
+    // if ((goal-prev_goal_).norm()<0.05){
+    //   ROS_INFO("Goal OK");
+    //   generator_.loadPreviousLocalTraj(result_traj_);
+    // } else {
+    //   ROS_INFO("GOAL RESET");
+    //   generator_.clearPreviousLocalTraj();
+    // }
+    generator_.loadPreviousLocalTraj(result_traj_);
     prev_goal_=goal;
     generator_.initialise(
         pos,
@@ -331,7 +333,7 @@ namespace ursa_local_planner {
     result_traj_.cost_ = -7;
     // find best trajectory by sampling and scoring the samples
     std::vector<base_local_planner::Trajectory> all_explored;
-    cout << "============" << endl;
+    //cout << "============" << endl;
     scored_sampling_planner_.findBestTrajectory(result_traj_, &all_explored);
 
     if(publish_traj_pc_)

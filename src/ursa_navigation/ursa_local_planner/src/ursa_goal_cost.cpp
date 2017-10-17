@@ -62,7 +62,10 @@ double UrsaGoalCostFunction::scoreTrajectory(base_local_planner::Trajectory &tra
     double home_dist = euclidean_distance(x_end,current_pose_x,y_end,current_pose_y);
 
     // cost
-    return 100*exp(-30.0f*(home_dist)/(home_dist+goal_dist));
+    //return 100*exp(-30.0f*(home_dist)/(home_dist+goal_dist));
+
+    unsigned int index=traj.getIndex();
+    return 100*exp(-1.0f*index);
 
     // // for each point in global plan, check distance from traj to point
     // int i = 0;

@@ -38,6 +38,7 @@
 #ifndef URSA_TRAJECTORY_GENERATOR_H_
 #define URSA_TRAJECTORY_GENERATOR_H_
 
+#include <base_local_planner/trajectory.h>
 #include <base_local_planner/trajectory_sample_generator.h>
 #include <base_local_planner/local_planner_limits.h>
 #include <Eigen/Core>
@@ -138,6 +139,7 @@ public:
         Eigen::Vector3f pos,
         Eigen::Vector3f vel,
         Eigen::Vector3f sample_target,
+        unsigned int index,
         base_local_planner::Trajectory& traj);
 
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
@@ -151,6 +153,7 @@ protected:
   // to store sample params of each sample between init and generation
   // Sample params are x,y,yaw components of samples on goal path
   std::vector<Eigen::Vector3f> sample_params_;
+  std::vector<unsigned int> index_params_;
   base_local_planner::LocalPlannerLimits* limits_;
   Eigen::Vector3f pos_;
   Eigen::Vector3f vel_;

@@ -52,8 +52,8 @@ double UrsaStickyCostFunction::scoreTrajectory(base_local_planner::Trajectory &t
     double x_end, y_end, th_end;
     traj.getEndpoint(x_end, y_end, th_end);
 
-    if (euclidean_distance(x_prev,x_end,y_prev,y_end)<0.05){
-        ROS_INFO("Found same traj - score zero");
+    if (euclidean_distance(x_prev,x_end,y_prev,y_end)<0.01){
+        //ROS_INFO("Found same traj - score zero");
         return 0;
     }
     // current pose
@@ -64,8 +64,9 @@ double UrsaStickyCostFunction::scoreTrajectory(base_local_planner::Trajectory &t
     double distance_to_prev = euclidean_distance(x_prev,current_pose_x,y_prev,current_pose_y);
 
     // cost
-    return 100000;
-    //return 300*exp(-0.001f/distance_to_prev);
+    //return -1;
+    //return 0;
+    return 220*exp(-1.0f/distance_to_prev);
 
     // // for each point in global plan, check distance from traj to point
     // int i = 0;

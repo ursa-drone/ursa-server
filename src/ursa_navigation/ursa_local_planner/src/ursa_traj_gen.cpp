@@ -142,6 +142,7 @@ void UrsaTrajectoryGenerator::initialise(
         // clear stuff and set up global variables
         traj_gen_paths_.clear();
         sample_params_.clear();
+        index_params_.clear();
         next_sample_index_ = 0;
         pos_ = pos;
         global_plan_ = global_plan;
@@ -149,13 +150,15 @@ void UrsaTrajectoryGenerator::initialise(
         double goal_inside_radius = checkIfInsideRadius(global_plan_.back().pose.position.x, global_plan_.back().pose.position.y, pos_[0], pos[1], 1.5, robot_radius_);
 
         Eigen::Vector3f test_point = Eigen::Vector3f::Zero();
+        unsigned int index=0;
         if (goal_inside_radius){
             // Add end point with the goal trajectory heading
             test_point[0] = global_plan_.back().pose.position.x;
             test_point[1] = global_plan_.back().pose.position.y;
             test_point[2] = tf::getYaw(global_plan_.back().pose.orientation);
             sample_params_.push_back(test_point);
-        }else{
+            index_params_.push_back(0);
+        } else {
             // Iterate over the points on global plan and add if they are seperated by at least 10cm (doesn't matter if last point included)
             std::vector<geometry_msgs::PoseStamped>::iterator poseIt;
             double distance;
@@ -174,6 +177,8 @@ void UrsaTrajectoryGenerator::initialise(
                     test_point[1] = w.pose.position.y;
                     test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
                     sample_params_.push_back(test_point);
+                    index_params_.push_back(index);
+                    index++;
                 }
             }
 
@@ -181,6 +186,7 @@ void UrsaTrajectoryGenerator::initialise(
             std::vector<double> points_either_side;
             std::vector<Eigen::Vector3f>::size_type i;
             int sample_params_SIZE = sample_params_.size();
+            index = 0;
             for (i = 1; i < sample_params_SIZE; i++){
               double x1 = sample_params_[i][0];
               double y1 = sample_params_[i][1];
@@ -189,8 +195,8 @@ void UrsaTrajectoryGenerator::initialise(
               double th = sample_params_[i][2];
 
               // gets points either side and heading of furthest point
-              double perp_dist = 0.7 * (rand() / double(RAND_MAX)) + 0.3;
-              cout << "perp_dist: " << perp_dist << endl;
+              double perp_dist = 0.5 * (rand() / double(RAND_MAX)) + 0.1;
+              //cout << "perp_dist: " << perp_dist << endl;
               points_either_side = perpendicular_points(x1, y1, x2, y2, perp_dist);
               test_point[2] = th;
 
@@ -198,26 +204,45 @@ void UrsaTrajectoryGenerator::initialise(
               test_point[0] = points_either_side[0];
               test_point[1] = points_either_side[1];
               sample_params_.push_back(test_point);
+              index_params_.push_back(index);
 
               // add the other
               test_point[0] = points_either_side[2];
               test_point[1] = points_either_side[3];
               sample_params_.push_back(test_point);
+              index_params_.push_back(index);
+              index++;
             }
 
-            // Add prevoius point
+            // Add previous point
             if (previous_result_traj_.getPointsSize() && has_prev_local_traj_){ // Check that there is something actually in there
                 double x, y, th;
                 previous_result_traj_.getEndpoint(x, y, th);
-                cout << "something there: "<< x << ", " << y << ", " << th << endl;
-                double prev_path_inside_radius = checkIfInsideRadius(global_plan_.front().pose.position.x, global_plan_.front().pose.position.y, x, y, 1, robot_radius_);
-                if (!prev_path_inside_radius){
-                    test_point[0] = x;
-                    test_point[1] = y;
-                    test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
-                    sample_params_.push_back(test_point);
-                    cout << "added prev" << endl;
+                //cout << "something there: "<< x << ", " << y << ", " << th << endl;
+                //double prev_path_inside_radius = checkIfInsideRadius(global_plan_.front().pose.position.x, global_plan_.front().pose.position.y, x, y, 1, robot_radius_);
+                //if (!prev_path_inside_radius){
+                test_point[0] = x;
+                test_point[1] = y;
+                test_point[2] = th;
+                //test_point[2] = headingGivenXandY(test_point[0] - pos_[0], test_point[1] - pos_[1]);
+                sample_params_.push_back(test_point);
+
+                std::vector<Eigen::Vector3f>::iterator samples;
+                double minDistance=0;
+                index=0;
+                unsigned int bestDex=0;
+                for (samples=sample_params_.begin(); samples<sample_params_.end()-1; ++samples){
+                    double distance_test = euclidean_distance((*samples)[0],test_point[0],(*samples)[1],test_point[1]);
+                    if (distance_test<minDistance){
+                        minDistance=distance_test;
+                        bestDex=index_params_[index];
+                    }
+                    index++;
                 }
+                index_params_.push_back(bestDex);
+
+                //cout << "added prev" << endl;
+                //}
             }
         }
     }
@@ -254,6 +279,7 @@ bool UrsaTrajectoryGenerator::nextTrajectory(base_local_planner::Trajectory &com
         pos_,
         vel_,
         sample_params_[next_sample_index_],
+        index_params_[next_sample_index_],
         comp_traj)) {
         result = true;
     }
@@ -298,6 +324,7 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
     Eigen::Vector3f pos,
     Eigen::Vector3f vel,
     Eigen::Vector3f sample_target,
+    unsigned int index,
     base_local_planner::Trajectory& traj) {
 
     traj.resetPoints();
@@ -313,6 +340,7 @@ bool UrsaTrajectoryGenerator::generateTrajectory(
 
     //simulate the trajectory
     traj.addPoint(x, y, sample_target[2]); // add first point in
+    traj.setIndex(index);
     for (int i = 0; i < num_steps; i++) {
         //add the point to the trajectory
         x += x_diff/num_steps;
