@@ -20,13 +20,13 @@ bool UrsaPrevPathCostFunction::init(base_local_planner::Trajectory previous_resu
     }
 
 inline bool logically_equal(double a, double b){
-        cout << "a: " << a << ", b: " << b << endl;
-        cout << "std::abs(a-b)<DBL_EPSILON: " << (std::abs(a-b)<DBL_EPSILON) << endl;
-        ;
+        //cout << "a: " << a << ", b: " << b << endl;
+        //cout << "std::abs(a-b)<DBL_EPSILON: " << (std::abs(a-b)<DBL_EPSILON) << endl;
         return std::abs(a-b)<DBL_EPSILON;
     }
 
 double UrsaPrevPathCostFunction::scoreTrajectory(base_local_planner::Trajectory &traj) {
+    return 0;
         // cout << "UrsaPrevPathCostFunction" << endl;
 
         double px, py, pth, x, y ,th;
@@ -35,13 +35,13 @@ double UrsaPrevPathCostFunction::scoreTrajectory(base_local_planner::Trajectory 
         if (previous_result_traj_.getPointsSize()){
             previous_result_traj_.getEndpoint(px, py, pth);
             if ( logically_equal(px, x) && logically_equal(py, y) ){
-                cout << "le -- " << x << ", " << y << ", " << th << endl;
+                //cout << "le -- " << x << ", " << y << ", " << th << endl;
                 return 0;
             }
         }
 
         // cout << "UrsaPrevPathCostFunction -- 10" << endl;
-        return 1;
+        return 0;
     }
 
 }

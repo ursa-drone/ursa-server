@@ -111,7 +111,12 @@ inline double euclidean_distance(double x1, double x2, double y1, double y2)
 }
 
 void UrsaTrajectoryGenerator::loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj){
-     previous_result_traj_ = previous_result_traj;
+    previous_result_traj_ = previous_result_traj;
+    has_prev_local_traj_ = true;
+}
+
+void UrsaTrajectoryGenerator::clearPreviousLocalTraj(){
+    has_prev_local_traj_ = false;
 }
 
 
@@ -201,7 +206,7 @@ void UrsaTrajectoryGenerator::initialise(
             }
 
             // Add prevoius point
-            if (previous_result_traj_.getPointsSize()){ // Check that there is something actually in there
+            if (previous_result_traj_.getPointsSize() && has_prev_local_traj_){ // Check that there is something actually in there
                 double x, y, th;
                 previous_result_traj_.getEndpoint(x, y, th);
                 cout << "something there: "<< x << ", " << y << ", " << th << endl;

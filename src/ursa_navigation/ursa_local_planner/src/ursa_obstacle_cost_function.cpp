@@ -39,8 +39,10 @@
 #include <cmath>
 #include <Eigen/Core>
 #include <ros/console.h>
+#include <costmap_2d/cost_values.h>
 #include <iostream>
 using namespace std;
+using namespace costmap_2d;
 
 namespace ursa_local_planner {
 
@@ -105,11 +107,12 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     if(f_cost < 0){
         return f_cost;
     }
-
     // return the cost of a point just outside the radius of drone
-    if (!checkIfInsideRadius(px,py,dx,dy,1,footprint_spec_[0].x)){
-      ROS_INFO("obstacle cost -- 1 -- %f", f_cost); // returns cost of last point on trajectory
-      return f_cost;
+    if (checkIfInsideRadius(px,py,dx,dy,1,footprint_spec_[0].x)){
+      cost=f_cost;
+      continue;
+      //ROS_INFO("obstacle cost -- 1 -- %f", f_cost); // returns cost of last point on trajectory
+      //return f_cost;
     }
     // if(sum_scores_)
     //     cost +=  f_cost;
@@ -118,7 +121,9 @@ double UrsaObstacleCostFunction::scoreTrajectory(base_local_planner::Trajectory 
     // if (f_cost > cost){
     //   cost = f_cost;      
     // }
-    cost +=  f_cost;
+    if (f_cost>cost){
+      cost=f_cost;
+    }
     
   }
   // cost = cost / traj.getPointsSize();
@@ -151,22 +156,27 @@ double UrsaObstacleCostFunction::footprintCost (
 
   //check if the footprint is legal
   // TODO: Cache inscribed radius
-  double footprint_cost = world_model->footprintCost(x, y, th, footprint_spec);
+  //double footprint_cost = world_model->footprintCost(x, y, th, footprint_spec);
 
-  if (footprint_cost < 0) {
-    return -6.0;
-  }
   unsigned int cell_x, cell_y;
-
   //we won't allow trajectories that go off the map... shouldn't happen that often anyways
   if ( ! costmap->worldToMap(x, y, cell_x, cell_y)) {
     return -7.0;
   }
+  double footprint_cost = costmap->getCost(cell_x, cell_y);
+  if (footprint_cost < 0) {
+    return -6.0;
+  }
+  //if(cost == LETHAL_OBSTACLE || cost == INSCRIBED_INFLATED_OBSTACLE)
+  if(footprint_cost == LETHAL_OBSTACLE || footprint_cost == INSCRIBED_INFLATED_OBSTACLE || footprint_cost == NO_INFORMATION)
+    return -1.0;
+  return footprint_cost;
 
   // return the max of (cell cost at footprint (last two points)) and (cell cost at centre of robot)
-  double occ_cost = std::max(std::max(0.0, footprint_cost), double(costmap->getCost(cell_x, cell_y)));
+  // double occ_cost = std::max(std::max(0.0, footprint_cost), double(costmap->getCost(cell_x, cell_y)));
 
-  return occ_cost;
+  // return occ_cost;
+
 }
 
 } /* namespace ursa_local_planner */

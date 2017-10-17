@@ -5,7 +5,7 @@ local_costmap:
   # coordinate frame and tf parameters
   global_frame: /map
   robot_base_frame: base_link
-  robot_radius: 0.4
+  robot_radius: 0.5
   # rate parameters
   update_frequency: 5.0
   publish_frequency: 2.0
@@ -23,5 +23,5 @@ local_costmap:
 
   # inflation
   inflation:
-    inflation_radius: 1.5
-    cost_scaling_factor: 5.53
+    inflation_radius: 3
+    cost_scaling_factor: 3

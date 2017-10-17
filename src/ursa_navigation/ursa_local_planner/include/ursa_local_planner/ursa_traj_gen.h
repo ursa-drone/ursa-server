@@ -143,6 +143,7 @@ public:
   void VisualiseTrajectoryGenerator(base_local_planner::Trajectory& traj);
   double headingGivenXandY(double x_diff, double y_diff);
   void loadPreviousLocalTraj(base_local_planner::Trajectory previous_result_traj);
+  void clearPreviousLocalTraj();
 
 protected:
 
@@ -161,6 +162,7 @@ protected:
   double sim_time_, sim_granularity_, angular_sim_granularity_;
   bool use_dwa_;
   double sim_period_; // only for dwa
+  bool has_prev_local_traj_;
 
   // Publisher and data for traj gen visualizer
   ros::Publisher visualize_traj_gen_pub_;

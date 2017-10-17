@@ -3,4 +3,4 @@ base_global_planner: global_planner/GlobalPlanner
 planner_frequency: 1.0
 
 GlobalPlanner:
-  allow_unknown: false
+  allow_unknown: true

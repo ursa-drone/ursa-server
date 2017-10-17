@@ -62,7 +62,7 @@
 #include <base_local_planner/simple_scored_sampling_planner.h>
 #include <ursa_local_planner/ursa_goal_cost.h>
 #include <ursa_local_planner/ursa_goal_front_cost.h>
-#include <ursa_local_planner/ursa_prev_path_cost.h>
+#include <ursa_local_planner/ursa_sticky_cost.h>
 
 #include <nav_msgs/Path.h>
 
@@ -156,6 +156,7 @@ namespace ursa_local_planner {
 
       double sim_period_;///< @brief The number of seconds to use to compute max/min vels for dwa
       base_local_planner::Trajectory result_traj_;
+      Eigen::Vector3f prev_goal_;
 
       double forward_point_distance_;
 
@@ -183,7 +184,7 @@ namespace ursa_local_planner {
       UrsaGoalCostFunction goal_costs_;
       double robot_radius_;
       UrsaPreferForwardCostFunction goal_front_costs_;
-      ursa_local_planner::UrsaPrevPathCostFunction prev_path_costs_;
+      ursa_local_planner::UrsaStickyCostFunction sticky_costs_;
 
       base_local_planner::SimpleScoredSamplingPlanner scored_sampling_planner_;
   };

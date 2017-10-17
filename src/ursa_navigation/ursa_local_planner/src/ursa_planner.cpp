@@ -168,7 +168,7 @@ namespace ursa_local_planner {
     std::vector<base_local_planner::TrajectoryCostFunction*> critics;
     //critics.push_back(&oscillation_costs_); // discards oscillating motions (assisgns cost -1)
     critics.push_back(&obstacle_costs_);
-    critics.push_back(&prev_path_costs_);
+    critics.push_back(&sticky_costs_);
     // critics.push_back(&goal_front_costs_); // prefers trajectories that make the nose go towards (local) nose goal
     //critics.push_back(&alignment_costs_); // prefers trajectories that keep the robot nose on nose path
     // critics.push_back(&path_costs_); // prefers trajectories on global path
@@ -254,7 +254,7 @@ namespace ursa_local_planner {
     // costs for not going towards the local goal as much as possible
     //goal_costs_.setTargetPoses(global_plan_);
     goal_costs_.init(1,global_plan_, global_pose, robot_radius_, result_traj_);
-    prev_path_costs_.init(result_traj_);
+    sticky_costs_.init(1,global_plan_, global_pose, robot_radius_, result_traj_);
     // goal_front_costs_.init(1, global_pose);
 
     // alignment costs
@@ -312,8 +312,14 @@ namespace ursa_local_planner {
     Eigen::Vector3f goal(goal_pose.pose.position.x, goal_pose.pose.position.y, tf::getYaw(goal_pose.pose.orientation));
     base_local_planner::LocalPlannerLimits limits = planner_util_->getCurrentLimits();
 
-    // prepare cost functions and generators for this run
-    generator_.loadPreviousLocalTraj(result_traj_);
+    // prepare cost functions and generators for this run - insert previous traj if goal hasn't changed
+    if (goal.x-prev_goal_.x<0.05 && goal.y-prev_goal_.y<0.05){
+      generator_.loadPreviousLocalTraj(result_traj_);
+    } else {
+      ROS_INFO("GOAL CHANGED");
+      generator_.clearPreviousLocalTraj();
+    }
+    prev_goal_=goal;
     generator_.initialise(
         pos,
         vel,
